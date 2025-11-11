@@ -1,14 +1,11 @@
 // form.js
 // Importar Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
 // Configuración de Supabase - NUEVA BASE DE DATOS
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsam52YXZlZW9wdGxiY3VnYm1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTc4ODUsImV4cCI6MjA3ODM3Mzg4NX0.hucHM1tnNxZ0_th6bEKVjeVe-FUO-JPrwjxAkSsWRcs';
-
 // Inicializar Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // Variables del DOM
 const urlParams = new URLSearchParams(window.location.search);
 const formId = urlParams.get('id'); // Este es el 'codigo_form' en Supabase
@@ -41,7 +38,6 @@ let currentMinAge = null;
 let currentMaxAge = null;
 let currentFormDbId = null; // Para almacenar el UUID del formulario de Supabase
 let isSubmitting = false; // Para prevenir envíos múltiples
-
 // --- Carga de datos del formulario (incluida imagen de fondo) ---
 async function cargarDatosFormulario() {
   if (!formId) return; 
@@ -81,7 +77,6 @@ async function cargarDatosFormulario() {
     errorMsg.style.display = 'block';
   }
 }
-
 if (!formId || formId.trim() === "") {
   if (formTitleElement) formTitleElement.textContent = 'Error: Formulario no especificado';
   if (errorMsg) {
@@ -94,29 +89,23 @@ if (!formId || formId.trim() === "") {
 } else {
   cargarDatosFormulario();
 }
-
 function toTitleCase(str) {
   return str.toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
 }
-
 function formatCedula(cedula) {
   return cedula.replace(/\D/g, '').replace(/(\d{2})(\d{3})(\d{3})/, '$1.$2.$3');
 }
-
 function formatSequentialCode(number) {
   return number.toString().padStart(3, '0');
 }
-
 if (formData) {
   formData.addEventListener('submit', async (event) => {
     event.preventDefault();
     errorMsg.style.display = 'none';
-
     const nombre = inputNombre.value.trim();
     const cedulaRaw = inputCedula.value.replace(/\D/g, '');
     const edadValue = inputEdad.value.trim();
     const referenciaValue = inputReferencia.value.trim();
-
     if (!nombre || !/^\d{8}$/.test(cedulaRaw) || !edadValue || !referenciaValue) {
       if (!nombre) errorMsg.textContent = 'Debe ingresar un nombre.';
       else if (!/^\d{8}$/.test(cedulaRaw)) errorMsg.textContent = 'La cédula debe tener exactamente 8 dígitos.';
@@ -125,20 +114,17 @@ if (formData) {
       errorMsg.style.display = 'block';
       return;
     }
-
     const edad = parseInt(edadValue);
     if (isNaN(edad) || edad < 0) {
         errorMsg.textContent = 'Edad inválida.';
         errorMsg.style.display = 'block';
         return;
     }
-
     if (!/^\d{4}$/.test(referenciaValue)) {
       errorMsg.textContent = 'El código de referencia debe ser de 4 dígitos.';
       errorMsg.style.display = 'block';
       return;
     }
-
     if (currentMinAge !== null && edad < currentMinAge) {
       errorMsg.textContent = `Error: Su edad no es válida. Debe ser mayor o igual a ${currentMinAge}.`;
       errorMsg.style.display = 'block';
@@ -149,24 +135,20 @@ if (formData) {
       errorMsg.style.display = 'block';
       return;
     }
-
     confNombre.textContent = toTitleCase(nombre);
     confCedula.textContent = formatCedula(cedulaRaw);
     confEdad.textContent = `${edad} años`;
     if (confReferencia) confReferencia.textContent = referenciaValue ? referenciaValue : '-';
-
     formData.style.display = 'none';
     entradaGenerada.style.display = 'none';
     confirmacionDatos.style.display = 'block';
-
     window.datosParaConfirmar = { nombre, cedula: cedulaRaw, edad: edadValue, edadInt: edad, referencia: referenciaValue };
   });
 }
-
 async function validarYObtenerReferencia(codigoReferencia, formDbId) {
   const { data, error } = await supabase
     .from('referencias_usos')
-    .select('id, usos_disponibles, tipo_entrada') // Seleccionar tipo_entrada también
+    .select('id, usos_disponibles, tipo_entrada') // <-- Seleccionar tipo_entrada también
     .eq('formulario_id', formDbId)
     .eq('codigo_referencia', codigoReferencia)
     .single();
@@ -177,9 +159,8 @@ async function validarYObtenerReferencia(codigoReferencia, formDbId) {
   if (data.usos_disponibles <= 0) {
     return { valida: false, mensaje: "Este código de referencia ya ha sido utilizado y no tiene usos disponibles." };
   }
-  return { valida: true, datosReferencia: data }; // Incluye tipo_entrada
+  return { valida: true, datosReferencia: data }; // <-- Incluye tipo_entrada
 }
-
 async function decrementarUsoReferencia(idReferencia) {
   const { data: refData, error: fetchError } = await supabase
     .from('referencias_usos')
@@ -190,21 +171,17 @@ async function decrementarUsoReferencia(idReferencia) {
     console.error("Error al obtener la referencia para decrementar o no encontrada:", fetchError);
     return;
   }
-
   const nuevosUsosDisponibles = refData.usos_disponibles - 1;
-
   const { error: updateError } = await supabase
     .from('referencias_usos')
     .update({ usos_disponibles: nuevosUsosDisponibles })
     .eq('id', idReferencia);
-
   if (updateError) {
     console.error("Error al decrementar uso de referencia:", updateError);
   } else {
     console.log(`Referencia ${idReferencia} decrementada a ${nuevosUsosDisponibles} usos.`);
   }
 }
-
 if (btnConfirmar) {
   btnConfirmar.addEventListener('click', async function () {
     if (isSubmitting) {
@@ -216,7 +193,6 @@ if (btnConfirmar) {
     const originalButtonText = btnConfirmar.textContent; // Guardar texto original
     btnConfirmar.textContent = 'Procesando...';
     errorMsg.style.display = 'none';
-
     try {
       if (!formId || formId.trim() === "" || !currentFormDbId) {
         errorMsg.innerHTML = "<b>Error Crítico:</b> ID de formulario ausente o no válido.";
@@ -226,10 +202,8 @@ if (btnConfirmar) {
         btnConfirmar.textContent = originalButtonText;
         return;
       }
-
       const { nombre, cedula, edadInt, referencia } = window.datosParaConfirmar;
       const formDisplayName = (formTitleElement.textContent || "Evento").replace("Formulario: ", "").trim();
-
       if (!referencia) { 
         errorMsg.textContent = "Error: Falta el código de referencia. Por favor, corrija sus datos.";
         errorMsg.style.display = 'block';
@@ -240,9 +214,8 @@ if (btnConfirmar) {
         btnConfirmar.textContent = originalButtonText;
         return;
       }
-
       let idReferenciaParaDecrementar = null;
-      let tipoEntradaReferencia = null; // Nuevo: Obtener el tipo de entrada
+      let tipoEntradaReferencia = null; // <-- Nuevo: Obtener el tipo de entrada
       const validacionRef = await validarYObtenerReferencia(referencia, currentFormDbId);
       if (!validacionRef.valida) {
         errorMsg.textContent = validacionRef.mensaje;
@@ -254,7 +227,7 @@ if (btnConfirmar) {
       }
       if (validacionRef.datosReferencia) {
         idReferenciaParaDecrementar = validacionRef.datosReferencia.id;
-        tipoEntradaReferencia = validacionRef.datosReferencia.tipo_entrada; // Obtener tipo
+        tipoEntradaReferencia = validacionRef.datosReferencia.tipo_entrada; // <-- Obtener tipo
       } else {
         console.error("Error lógico: Referencia marcada como válida pero sin datos de referencia.");
         errorMsg.textContent = "Error interno al validar la referencia. Intente de nuevo.";
@@ -264,14 +237,12 @@ if (btnConfirmar) {
         btnConfirmar.textContent = originalButtonText;
         return;
       }
-
       const { data: existingResponse, error:查Error } = await supabase
         .from('respuestas')
         .select('cedula')
         .eq('formulario_id', currentFormDbId)
         .eq('cedula', cedula)
         .maybeSingle(); 
-
       if (查Error) {
         console.error("Error detallado verificando cédula duplicada en Supabase:", 查Error);
         errorMsg.textContent = "Error al verificar la cédula. Intente de nuevo.";
@@ -293,7 +264,6 @@ if (btnConfirmar) {
         btnConfirmar.textContent = originalButtonText;
         return;
       }
-
       let nuevoCodigoSecuencial;
       let nuevoCodigoSecuencialFormateado;
       try {
@@ -310,7 +280,6 @@ if (btnConfirmar) {
         } else {
           nuevoCodigoSecuencial = 1;
         }
-
         const { error: upsertError } = await supabase
           .from('contadores_formularios')
           .upsert({ formulario_id: currentFormDbId, ultimo_codigo: nuevoCodigoSecuencial }, { onConflict: 'formulario_id' });
@@ -329,7 +298,6 @@ if (btnConfirmar) {
         btnConfirmar.textContent = originalButtonText;
         return;
       }
-
       const nuevaRespuesta = {
         formulario_id: currentFormDbId,
         codigo_secuencial: nuevoCodigoSecuencialFormateado,
@@ -337,9 +305,8 @@ if (btnConfirmar) {
         cedula: cedula,
         edad: edadInt,
         referencia_usada: referencia,
-        tipo_entrada: tipoEntradaReferencia // Nuevo: Guardar tipo de entrada desde la referencia
+        tipo_entrada: tipoEntradaReferencia // <-- Nuevo: Guardar tipo de entrada desde la referencia
       };
-
       let insertDataResponse;
       try {
         insertDataResponse = await supabase
@@ -366,23 +333,18 @@ if (btnConfirmar) {
         btnConfirmar.textContent = originalButtonText;
         return;
       }
-
       const { data: insertData } = insertDataResponse;
-
       if (insertData) {
         if (idReferenciaParaDecrementar) {
           await decrementarUsoReferencia(idReferenciaParaDecrementar);
         }
-
         outNombre.textContent = insertData.nombre_completo; 
         outCedula.textContent = formatCedula(insertData.cedula);
         outEdad.textContent = `${insertData.edad} años`;
         outCodigo.textContent = insertData.codigo_secuencial;
         outReferencia.textContent = insertData.referencia_usada;
         outReferenciaContenedor.style.display = 'block';
-
         if (codigoQR) codigoQR.textContent = "Código: " + insertData.codigo_secuencial;
-
         const qrCanvasElement = document.getElementById('qrCanvas');
         let datosQR = `${formDisplayName}
 Nombre: ${insertData.nombre_completo}
@@ -393,11 +355,10 @@ Código: ${insertData.codigo_secuencial}`;
             datosQR += `
 Ref: ${insertData.referencia_usada}`;
         }
-        if (insertData.tipo_entrada) { // Nuevo: Añadir tipo de entrada al QR
+        if (insertData.tipo_entrada) { // <-- Nuevo: Añadir tipo de entrada al QR
             datosQR += `
 Tipo: ${insertData.tipo_entrada}`;
         }
-
         if (qrCanvasElement) {
           QRCode.toCanvas(qrCanvasElement, datosQR, {
             width: parseInt(qrCanvasElement.style.width) || 70,
@@ -407,7 +368,6 @@ Tipo: ${insertData.tipo_entrada}`;
             if (error) console.error("Error generando QR para visualización:", error);
           });
         }
-
         confirmacionDatos.style.display = 'none';
         entradaGenerada.style.display = 'block';
         // En caso de éxito, isSubmitting permanece true y el botón deshabilitado
@@ -432,7 +392,6 @@ Tipo: ${insertData.tipo_entrada}`;
     // En caso de éxito, el botón de confirmación ya no está visible.
   });
 }
-
 if (btnCorregir) {
   btnCorregir.addEventListener('click', () => {
     isSubmitting = false; 
@@ -452,7 +411,6 @@ if (btnCorregir) {
     errorMsg.style.display = 'none'; 
   });
 }
-
 if (guardarBtn) {
   guardarBtn.addEventListener('click', async () => {
     try {
@@ -463,13 +421,11 @@ if (guardarBtn) {
         alert("Error: No se pudo encontrar el contenido del ticket para guardar.");
         return;
       }
-
       const clone = elementToCapture.cloneNode(true);
       const targetOutputWidthPx = 2500;
       const targetOutputHeightPx = 960;
       const cloneBaseWidth = elementToCapture.offsetWidth;
       const cloneBaseHeight = elementToCapture.offsetHeight;
-
       clone.style.width = `${cloneBaseWidth}px`;
       clone.style.height = `${cloneBaseHeight}px`;
       clone.style.boxSizing = 'border-box';
@@ -479,7 +435,6 @@ if (guardarBtn) {
         el.style.boxShadow = 'none';
       });
       clone.style.backgroundColor = '#ffffff';
-
       const clonedTicketBg = clone.querySelector('#ticketBg');
       if (clonedTicketBg) {
         clonedTicketBg.style.width = '100%';
@@ -493,7 +448,6 @@ if (guardarBtn) {
       } else {
         clone.style.backgroundColor = '#ffffff';
       }
-
       const qrAbsoluteDivInClone = clone.querySelector('.qr-absolute');
       if (qrAbsoluteDivInClone) {
         qrAbsoluteDivInClone.style.position = 'absolute';
@@ -509,7 +463,6 @@ if (guardarBtn) {
         qrAbsoluteDivInClone.style.alignItems = 'center';
         qrAbsoluteDivInClone.style.zIndex = '10';
       }
-
       const qrCanvasInClone = clone.querySelector('#qrCanvas');
       if (qrCanvasInClone) {
         const originalQrCanvas = document.getElementById('qrCanvas');
@@ -519,7 +472,6 @@ if (guardarBtn) {
         qrCanvasInClone.style.boxShadow = 'none';
         qrCanvasInClone.style.display = 'block';
       }
-
       const qrCodeLabelInClone = clone.querySelector('.qr-code-label');
       if (qrCodeLabelInClone) {
         const originalQrLabel = document.getElementById('codigoQR');
@@ -530,13 +482,10 @@ if (guardarBtn) {
         qrCodeLabelInClone.style.fontWeight = getComputedStyle(originalQrLabel).fontWeight;
         qrCodeLabelInClone.textContent = "Código: " + outCodigo.textContent;
       }
-
       clone.style.position = 'absolute';
       clone.style.left = '-9999px';
       document.body.appendChild(clone);
-
       await new Promise(resolve => setTimeout(resolve, 250)); 
-
       const scaleFactor = targetOutputWidthPx / cloneBaseWidth;
       html2canvas(clone, {
         useCORS: true,
@@ -574,18 +523,15 @@ Tipo: ${outTipoEntrada.textContent}`;
         finalCanvas.width = targetOutputWidthPx;
         finalCanvas.height = targetOutputHeightPx;
         const finalCtx = finalCanvas.getContext('2d');
-
         if (clone.style.backgroundColor === 'transparent') { 
             finalCtx.fillStyle = '#ffffff';
             finalCtx.fillRect(0, 0, targetOutputWidthPx, targetOutputHeightPx);
         }
-
         finalCtx.drawImage(
           canvasFromHtml2Canvas,
           0, 0, canvasFromHtml2Canvas.width, canvasFromHtml2Canvas.height, 
           0, 0, targetOutputWidthPx, targetOutputHeightPx 
         );
-
         const link = document.createElement('a');
         const nombreArchivo = `${outCodigo.textContent || 'TICKET'}${(outNombre.textContent || 'nombre')}.jpg`;
         link.download = nombreArchivo;
@@ -605,5 +551,4 @@ Tipo: ${outTipoEntrada.textContent}`;
     }
   });
 }
-
 console.log("form.js cargado con lógica de referencias obligatorias y prevención de doble clic.");
