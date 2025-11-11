@@ -1,14 +1,11 @@
 // respuestas.js
 // Importar Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm  ';
-
 // Configuración de Supabase - NUEVA BASE DE DATOS
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co  ';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsam52YXZlZW9wdGxiY3VnYm1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTc4ODUsImV4cCI6MjA3ODM3Mzg4NX0.hucHM1tnNxZ0_th6bEKVjeVe-FUO-JPrwjxAkSsWRcs';
-
 // Inicializar Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // Variables DOM
 const urlParams = new URLSearchParams(window.location.search);
 const formId = urlParams.get('id'); // Este es el 'codigo_form' en Supabase
@@ -21,13 +18,11 @@ const paginationDiv = document.getElementById('pagination');
 const excelBtn = document.getElementById('excelBtn');
 const printBtn = document.getElementById('printBtn');
 const noDataMsg = document.getElementById('noDataMsg');
-
 let todasLasRespuestas = []; 
 let filteredRespuestas = []; 
 let currentPage = 1;
 const PAGE_SIZE = 50;
 let currentFormDbId = null; 
-
 // --- INICIO: Validación de formId y carga de datos ---
 if (!formId || formId.trim() === "") {
   if (formTitleElement) {
@@ -55,14 +50,12 @@ if (!formId || formId.trim() === "") {
   await cargarRespuestas(); 
 }
 // --- FIN: Validación de formId y carga de datos ---
-
 async function cargarRespuestas() {
   const { data: formInfo, error: formInfoError } = await supabase
     .from('formularios')
     .select('id, nombre') 
     .eq('codigo_form', formId)
     .single();
-
   if (formInfoError || !formInfo) {
     console.error("Error cargando información del formulario desde Supabase:", formInfoError);
     if (formTitleElement) formTitleElement.textContent = `Error al encontrar formulario ${formId}`;
@@ -77,17 +70,14 @@ async function cargarRespuestas() {
     if (paginationDiv) paginationDiv.innerHTML = '';
     return;
   }
-
   currentFormDbId = formInfo.id;
   if (formTitleElement) formTitleElement.textContent = `Respuestas del Formulario: ${formInfo.nombre || formId}`;
-
   // Cargar respuestas
   const { data: respuestasData, error: respuestasError } = await supabase
     .from('respuestas')
-    .select('id, codigo_secuencial, nombre_completo, cedula, edad, fecha_registro, referencia_usada, tipo_entrada') // Seleccionar tipo_entrada también
+    .select('id, codigo_secuencial, nombre_completo, cedula, edad, fecha_registro, referencia_usada, tipo_entrada') // <-- Seleccionar tipo_entrada también
     .eq('formulario_id', currentFormDbId)
     .order('fecha_registro', { ascending: false }); 
-
   if (respuestasError) {
     console.error("Error cargando respuestas de Supabase:", respuestasError);
     if (noDataMsg) {
@@ -108,7 +98,6 @@ async function cargarRespuestas() {
         tipo_entrada: r.tipo_entrada || 'N/A' // <-- Nuevo campo, usar N/A si es nulo
     }));
   }
-
   if (todasLasRespuestas.length > 0) {
     if (noDataMsg) noDataMsg.style.display = 'none';
     if (respuestasTable) respuestasTable.style.display = '';
@@ -126,31 +115,25 @@ async function cargarRespuestas() {
     if (excelBtn) excelBtn.style.display = 'none';
     if (paginationDiv) paginationDiv.innerHTML = '';
   }
-
   filteredRespuestas = [...todasLasRespuestas];
   currentPage = 1;
   renderTableAndPagination();
 }
-
 function formatCedula(cedula) {
   if (typeof cedula !== 'string') cedula = String(cedula || '');
   return cedula.replace(/\D/g, '').replace(/(\d{2})(\d{3})(\d{3})/, '$1.$2.$3');
 }
-
 function escapeHtml(text) {
     if (text === null || typeof text === 'undefined') return '';
     const div = document.createElement('div');
     div.textContent = String(text);
     return div.innerHTML;
 }
-
 function renderTableAndPagination() {
   if (!respuestasTableBody) return;
-
   const start = (currentPage - 1) * PAGE_SIZE;
   const end = start + PAGE_SIZE;
   const dataToShow = filteredRespuestas.slice(start, end);
-
   respuestasTableBody.innerHTML = '';
   if (dataToShow.length === 0 && (formId && formId.trim() !== "")) {
       if (noDataMsg && !noDataMsg.textContent.startsWith("Error:")) {
@@ -161,7 +144,6 @@ function renderTableAndPagination() {
       if (noDataMsg) noDataMsg.style.display = 'none';
       if (respuestasTable) respuestasTable.style.display = '';
   }
-
   dataToShow.forEach((r, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -178,9 +160,7 @@ function renderTableAndPagination() {
     `;
     respuestasTableBody.appendChild(tr);
   });
-
   if (dashboardCount) dashboardCount.textContent = filteredRespuestas.length;
-
   if (paginationDiv) {
     paginationDiv.innerHTML = '';
     const totalPages = Math.ceil(filteredRespuestas.length / PAGE_SIZE);
@@ -198,7 +178,6 @@ function renderTableAndPagination() {
     }
   }
 }
-
 if (searchInput) {
   searchInput.addEventListener('input', () => {
     const term = searchInput.value.toLowerCase();
@@ -214,7 +193,6 @@ if (searchInput) {
     renderTableAndPagination();
   });
 }
-
 if (printBtn) {
   printBtn.onclick = function () {
     if (!formId || filteredRespuestas.length === 0) return;
@@ -235,7 +213,6 @@ if (printBtn) {
     setTimeout(() => win.print(), 500);
   };
 }
-
 if (excelBtn) {
   excelBtn.onclick = function () {
     if (!formId || filteredRespuestas.length === 0) return;
