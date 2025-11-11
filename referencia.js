@@ -1,13 +1,10 @@
 // referencia.js
 // Importar Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm  ';
-
 // Configuración de Supabase - NUEVA BASE DE DATOS
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co  ';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsam52YXZlZW9wdGxiY3VnYm1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTc4ODUsImV4cCI6MjA3ODM3Mzg4NX0.hucHM1tnNxZ0_th6bEKVjeVe-FUO-JPrwjxAkSsWRcs';
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // DOM Elements
 const formPadreNombreElem = document.getElementById('formPadreNombre');
 const formPadreCodigoElem = document.getElementById('formPadreCodigo');
@@ -19,15 +16,12 @@ const referenciasTableBody = document.querySelector('#referenciasTable tbody');
 const noReferenciasMsg = document.getElementById('noReferencias');
 const errorMensajeElem = document.getElementById('errorMensaje');
 const exitoMensajeElem = document.getElementById('exitoMensaje');
-
 let currentFormPadreCodigo = null;
 let currentFormPadreDbId = null; // El UUID del formulario padre
-
 // --- Inicialización ---
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   currentFormPadreCodigo = urlParams.get('id_formulario');
-
   if (!currentFormPadreCodigo) {
     mostrarError('Error: No se especificó un ID de formulario padre en la URL.');
     if (formPadreNombreElem) formPadreNombreElem.textContent = 'Error';
@@ -36,21 +30,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('referenciasTable').style.display = 'none';
     return;
   }
-
   if (formPadreCodigoElem) formPadreCodigoElem.textContent = currentFormPadreCodigo;
   await cargarInformacionFormularioPadre();
   if (currentFormPadreDbId) {
     await cargarReferenciasExistentes();
   }
 });
-
 async function cargarInformacionFormularioPadre() {
   const { data: formData, error } = await supabase
     .from('formularios')
     .select('id, nombre') // 'id' es el UUID que necesitamos
     .eq('codigo_form', currentFormPadreCodigo)
     .single();
-
   if (error || !formData) {
     console.error('Error cargando información del formulario padre:', error);
     mostrarError(`Error: No se pudo cargar información para el formulario con código ${currentFormPadreCodigo}.`);
@@ -58,25 +49,20 @@ async function cargarInformacionFormularioPadre() {
     crearReferenciaForm.style.display = 'none';
     return;
   }
-
   currentFormPadreDbId = formData.id; // Guardamos el UUID
   if (formPadreNombreElem) formPadreNombreElem.textContent = formData.nombre || 'Sin nombre';
 }
-
 // --- Crear Referencia ---
 crearReferenciaForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   ocultarMensajes();
-
   if (!currentFormPadreDbId) {
     mostrarError("Error: No se ha identificado el formulario padre. No se puede crear la referencia.");
     return;
   }
-
   const codigoReferencia = codigoReferenciaInput.value.trim();
   const usosReferencia = parseInt(usosReferenciaInput.value.trim());
   const tipoEntrada = tipoEntradaInput.value.trim(); // <--- NUEVO: Obtener el valor del tipo
-
   if (!/^\d{4}$/.test(codigoReferencia)) {
     mostrarError('El código de referencia debe ser un número de 4 dígitos.');
     return;
@@ -90,8 +76,6 @@ crearReferenciaForm.addEventListener('submit', async (event) => {
      mostrarError('Por favor, selecciona un tipo de entrada válido (VIP o General).');
      return;
   }
-
-
   // Verificar si la referencia ya existe para este formulario
   const { data: existingRef, error: checkError } = await supabase
     .from('referencias_usos') // Nombre tentativo de la tabla
@@ -99,18 +83,15 @@ crearReferenciaForm.addEventListener('submit', async (event) => {
     .eq('formulario_id', currentFormPadreDbId)
     .eq('codigo_referencia', codigoReferencia)
     .maybeSingle();
-
   if (checkError) {
     console.error("Error verificando referencia existente:", checkError);
     mostrarError(`Error al verificar la referencia: ${checkError.message}`);
     return;
   }
-
   if (existingRef) {
     mostrarError(`El código de referencia '${codigoReferencia}' ya existe para este formulario.`);
     return;
   }
-
   // Insertar nueva referencia
   const { error: insertError } = await supabase
     .from('referencias_usos') // Nombre tentativo de la tabla
@@ -123,7 +104,6 @@ crearReferenciaForm.addEventListener('submit', async (event) => {
         tipo_entrada: tipoEntrada // <--- NUEVO: Guardar el tipo de entrada
       }
     ]);
-
   if (insertError) {
     console.error("Error al crear referencia:", insertError);
     mostrarError(`No se pudo crear la referencia: ${insertError.message}`);
@@ -133,17 +113,14 @@ crearReferenciaForm.addEventListener('submit', async (event) => {
     await cargarReferenciasExistentes(); // Recargar la lista
   }
 });
-
 // --- Cargar Referencias Existentes ---
 async function cargarReferenciasExistentes() {
   if (!currentFormPadreDbId) return;
-
   const { data, error } = await supabase
     .from('referencias_usos') // Nombre tentativo de la tabla
     .select('id, codigo_referencia, tipo_entrada, usos_disponibles, usos_iniciales') // <--- NUEVO: Seleccionar tipo_entrada
     .eq('formulario_id', currentFormPadreDbId) // Filtrar por el UUID del formulario padre
     .order('created_at', { ascending: false });
-
   if (error) {
     console.error("Error cargando referencias existentes:", error);
     mostrarError(`Error al cargar las referencias: ${error.message}`);
@@ -151,7 +128,6 @@ async function cargarReferenciasExistentes() {
     noReferenciasMsg.style.display = 'none';
     return;
   }
-
   referenciasTableBody.innerHTML = ''; // Limpiar tabla
   if (data && data.length > 0) {
     noReferenciasMsg.style.display = 'none';
@@ -172,19 +148,16 @@ async function cargarReferenciasExistentes() {
     noReferenciasMsg.style.display = 'block';
   }
 }
-
 // --- Borrar Referencia ---
 window.borrarReferencia = async function(idReferencia, codigoRef) {
   if (!confirm(`¿Seguro que quieres borrar la referencia "${codigoRef}"? Esta acción no se puede deshacer.`)) {
     return;
   }
   ocultarMensajes();
-
   const { error } = await supabase
     .from('referencias_usos') // Nombre tentativo de la tabla
     .delete()
     .eq('id', idReferencia);
-
   if (error) {
     console.error("Error al borrar referencia:", error);
     mostrarError(`No se pudo borrar la referencia: ${error.message}`);
@@ -193,7 +166,6 @@ window.borrarReferencia = async function(idReferencia, codigoRef) {
     await cargarReferenciasExistentes(); // Recargar la lista
   }
 }
-
 // --- Funciones de utilidad para mensajes ---
 function mostrarError(mensaje) {
   if (errorMensajeElem) {
@@ -211,14 +183,12 @@ function ocultarMensajes() {
   if (errorMensajeElem) errorMensajeElem.style.display = 'none';
   if (exitoMensajeElem) exitoMensajeElem.style.display = 'none';
 }
-
 /*
   PASO IMPORTANTE: CREACIÓN DE LA TABLA EN SUPABASE
   -------------------------------------------------
   Asegúrate de que la tabla 'referencias_usos' en Supabase incluya la columna 'tipo_entrada'.
   Si ya existe, puedes añadirla con:
   ALTER TABLE public.referencias_usos ADD COLUMN tipo_entrada TEXT CHECK (tipo_entrada IN ('VIP', 'General'));
-
   La tabla debería verse así:
   CREATE TABLE public.referencias_usos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
