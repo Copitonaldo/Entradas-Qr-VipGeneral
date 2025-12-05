@@ -1,6 +1,5 @@
-// respuestas.js
 // Importar Supabase
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm  ';
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.4/+esm";
 // Configuración de Supabase - NUEVA BASE DE DATOS
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co  ';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsam52YXZlZW9wdGxiY3VnYm1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTc4ODUsImV4cCI6MjA3ODM3Mzg4NX0.hucHM1tnNxZ0_th6bEKVjeVe-FUO-JPrwjxAkSsWRcs';
@@ -236,3 +235,4 @@ if (excelBtn) {
   };
 }
 console.log("respuestas.js cargado con lógica de tipo de entrada.");
+
