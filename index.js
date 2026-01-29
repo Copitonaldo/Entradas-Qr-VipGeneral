@@ -60,7 +60,7 @@ function renderFormularios() {
       <td><img src="${f.imagenFondoUrl}" alt="Fondo" class="thumb" style="width:60px;height:auto;" /></td>
       <td>
         <a href="form.html?id=${f.codigo}" target="_blank">Formulario</a> |
-        <a href="respuestas.html?id=${f.codigo}" target="_blank">Datos</a> |
+        <a href="respuestas.html?id=${f.codigo}" target="_blank">Lista de Datos</a> |
         <a href="referencia.html?id_formulario=${f.codigo}" target="_blank">Referencias</a> |
         <button class="delete-btn" onclick="borrarFormulario('${f.codigo}', '${f.db_id}')">Borrar</button>
       </td>
@@ -164,3 +164,4 @@ logoutBtn.addEventListener('click', () => {
   formulariosCache = [];
   renderFormularios();
 });
+
