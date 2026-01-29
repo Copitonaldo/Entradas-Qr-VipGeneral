@@ -1,9 +1,13 @@
 // Importar Supabase
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.4/+esm";
+
 // Configuración de Supabase - NUEVA BASE DE DATOS
-const SUPABASE_URL = 'https://wiyejeeiehwfkdcbpomp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpeWVqZWVpZWh3ZmtkY2Jwb21wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NjQwOTYsImV4cCI6MjA2NzE0MDA5Nn0.yDq4eOHujKH2nmg-F-DVnqCHGwdfEmf4Z968KXl1SDc';
+const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co';
+const SUPABASE_ANON_KEY = 'SUPABASE_CLIENT_API_KEY';
+
+// Inicializar Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // DOM Elements
 const formPadreNombreElem = document.getElementById('formPadreNombre');
 const formPadreCodigoElem = document.getElementById('formPadreCodigo');
@@ -203,4 +207,3 @@ function ocultarMensajes() {
   ...
 */
 console.log("referencia.js cargado con soporte para tipo de entrada.");
-

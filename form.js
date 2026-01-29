@@ -1,10 +1,13 @@
 // Importar Supabase
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.1/+esm";
-// Configuración de Supabase (manteniendo los valores originales)
-const SUPABASE_URL = 'https://wiyejeeiehwfkdcbpomp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpeWVqZWVpZWh3ZmtkY2Jwb21wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NjQwOTYsImV4cCI6MjA2NzE0MDA5Nn0.yDq4eOHujKH2nmg-F-DVnqCHGwdfEmf4Z968KXl1SDc'; // Clave original
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.4/+esm";
+
+// Configuración de Supabase - NUEVA BASE DE DATOS
+const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co';
+const SUPABASE_ANON_KEY = 'SUPABASE_CLIENT_API_KEY';
+
 // Inicializar Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Variables del DOM
 const urlParams = new URLSearchParams(window.location.search);
 const formId = urlParams.get('id'); // Este es el 'codigo_form' en Supabase
@@ -591,5 +594,3 @@ Ref: ${outReferencia.textContent}`;
   });
 }
 console.log("form.js cargado con lógica de referencias obligatorias y prevención de doble clic.");
-
-
