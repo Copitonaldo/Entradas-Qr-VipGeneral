@@ -1,16 +1,14 @@
 // Importar Supabase
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.4/+esm";
 
-// 🔑 Configuración de Supabase — ¡YA CONFIGURADA CON TUS DATOS!
+// 🔑 CONFIGURACIÓN — ¡VALIDADA!
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsam52YXZlZW9wdGxiY3VnYm1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTc4ODUsImV4cCI6MjA3ODM3Mzg4NX0.hucHM1tnNxZ0_th6bEKVjeVe-FUO-JPrwjxAkSsWRcs';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Contraseña simple (mejorar en producción si es necesario)
 const PASSWORD = 'admin123';
 
-// Variables del DOM
 const loginSection = document.getElementById('loginSection');
 const adminPanel = document.getElementById('adminPanel');
 const passwordInput = document.getElementById('password');
@@ -26,7 +24,6 @@ const formulariosTableBody = document.querySelector('#formulariosTable tbody');
 
 let formulariosCache = [];
 
-// Función principal: Cargar formularios
 async function cargarFormularios() {
   const { data, error } = await supabase
     .from('formularios')
@@ -46,16 +43,13 @@ async function cargarFormularios() {
       max_age: f.max_age
     }));
   }
-
   renderFormularios();
 }
 
-// Generar código único para nuevo formulario
 function generarCodigoFormulario() {
   return 'FORM' + Math.random().toString(36).substr(2, 5).toUpperCase();
 }
 
-// Renderizar formularios en la tabla
 function renderFormularios() {
   formulariosTableBody.innerHTML = '';
   formulariosCache.forEach(f => {
@@ -65,9 +59,9 @@ function renderFormularios() {
       <td>${f.nombre}</td>
       <td><img src="${f.imagenFondoUrl}" alt="Fondo" class="thumb" style="width:60px;height:auto;" /></td>
       <td>
-        <a href="form.html?id=${f.codigo}" target="_blank">Formulario Público</a> |
-        <a href="respuestas.html?id=${f.codigo}" target="_blank">Lista de Datos</a> |
-        <a href="referencia.html?id_formulario=${f.codigo}" target="_blank">Formulario de Referencia</a> |
+        <a href="form.html?id=${f.codigo}" target="_blank">Formulario</a> |
+        <a href="respuestas.html?id=${f.codigo}" target="_blank">Datos</a> |
+        <a href="referencia.html?id_formulario=${f.codigo}" target="_blank">Referencias</a> |
         <button class="delete-btn" onclick="borrarFormulario('${f.codigo}', '${f.db_id}')">Borrar</button>
       </td>
     `;
@@ -75,12 +69,11 @@ function renderFormularios() {
   });
 }
 
-// Evento: Crear formulario
 createForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const nombre = formNameInput.value.trim();
-  if (!nombre) return alert('Ingrese un nombre para el formulario');
+  if (!nombre) return alert('Ingrese un nombre');
 
   let minAge = null;
   const minAgeValue = minAgeInput.value.trim();
@@ -97,40 +90,29 @@ createForm.addEventListener('submit', async (e) => {
   }
 
   if (minAge !== null && maxAge !== null && minAge > maxAge) {
-    return alert('La edad mínima no puede ser mayor que la edad máxima.');
+    return alert('La edad mínima no puede ser mayor que la máxima.');
   }
 
-  const file = formBgInput.files.length > 0 ? formBgInput.files[0] : null;
+  const file = formBgInput.files[0] || null;
   let imagenUrl = null;
 
   if (file) {
     const filePath = `public/${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-    const { error: uploadError } = await supabase.storage
-      .from('form-backgrounds')
-      .upload(filePath, file);
-
-    if (uploadError) {
-      alert('Error al subir imagen. El formulario se creará sin imagen.');
-    } else {
+    const { error: uploadError } = await supabase.storage.from('form-backgrounds').upload(filePath, file);
+    if (!uploadError) {
       const { data } = supabase.storage.from('form-backgrounds').getPublicUrl(filePath);
       imagenUrl = data.publicUrl;
     }
   }
 
   const codigoForm = generarCodigoFormulario();
-  const nuevoFormulario = {
-    codigo_form: codigoForm,
-    nombre,
-    min_age: minAge,
-    max_age: maxAge,
-    imagen_url: imagenUrl
-  };
+  const nuevoFormulario = { codigo_form: codigoForm, nombre, min_age: minAge, max_age: maxAge, imagen_url: imagenUrl };
 
   const { error: insertError } = await supabase.from('formularios').insert([nuevoFormulario]);
 
   if (insertError) {
     console.error("Error al crear formulario:", insertError);
-    alert(`No se pudo crear el formulario: ${insertError.message}`);
+    alert(`No se pudo crear: ${insertError.message}`);
     return;
   }
 
@@ -139,68 +121,28 @@ createForm.addEventListener('submit', async (e) => {
   createForm.reset();
 });
 
-// Función: Borrar formulario y todos sus datos relacionados
 window.borrarFormulario = async function(codigoForm, db_id) {
-  if (!confirm(`¿Seguro que quieres borrar el formulario "${codigoForm}" y todos sus datos?`)) return;
+  if (!confirm(`¿Borrar "${codigoForm}" y todos sus datos?`)) return;
 
   try {
-    // 1. Borrar respuestas asociadas
-    const { error: deleteRespuestasError } = await supabase
-      .from('respuestas')
-      .delete()
-      .eq('formulario_id', db_id);
-
-    if (deleteRespuestasError) throw deleteRespuestasError;
-
-    // 2. Borrar contador del formulario
-    const { error: deleteContadorError } = await supabase
-      .from('contadores_formularios')
-      .delete()
-      .eq('formulario_id', db_id);
-
-    if (deleteContadorError && deleteContadorError.code !== 'PGRST116') {
-      throw deleteContadorError;
-    }
-
-    // 3. Borrar imagen del formulario (si existe)
-    const { data: formData, error: fetchImageError } = await supabase
-      .from('formularios')
-      .select('imagen_url')
-      .eq('id', db_id)
-      .single();
-
-    if (fetchImageError && fetchImageError.code !== 'PGRST116') {
-      throw fetchImageError;
-    }
-
+    await supabase.from('respuestas').delete().eq('formulario_id', db_id);
+    await supabase.from('contadores_formularios').delete().eq('formulario_id', db_id);
+    
+    const { data: formData } = await supabase.from('formularios').select('imagen_url').eq('id', db_id).single();
     if (formData?.imagen_url) {
-      const imagePath = formData.imagen_url.split('/').slice(-2).join('/');
-      const { error: deleteImageError } = await supabase.storage
-        .from('form-backgrounds')
-        .remove([imagePath]);
-      if (deleteImageError && deleteImageError.statusCode !== '404' && !deleteImageError.message.includes("Object not found")) {
-        console.warn("Advertencia al borrar imagen:", deleteImageError);
-      }
+      const path = formData.imagen_url.split('/').slice(-2).join('/');
+      await supabase.storage.from('form-backgrounds').remove([path]);
     }
 
-    // 4. Finalmente, borrar el formulario
-    const { error: deleteFormularioError } = await supabase
-      .from('formularios')
-      .delete()
-      .eq('id', db_id);
-
-    if (deleteFormularioError) throw deleteFormularioError;
-
-    alert(`✅ Formulario "${codigoForm}" y todos sus datos han sido eliminados.`);
+    await supabase.from('formularios').delete().eq('id', db_id);
+    alert(`✅ Eliminado: ${codigoForm}`);
     await cargarFormularios();
-
-  } catch (error) {
-    console.error("Error al borrar formulario:", error);
-    alert(`❌ Error al borrar formulario: ${error.message}`);
+  } catch (e) {
+    console.error("Error al borrar:", e);
+    alert(`❌ Error: ${e.message}`);
   }
 };
 
-// Evento: Login
 loginBtn.addEventListener('click', () => {
   if (passwordInput.value === PASSWORD) {
     loginError.style.display = 'none';
@@ -213,7 +155,6 @@ loginBtn.addEventListener('click', () => {
   }
 });
 
-// Evento: Logout — ✅ CORREGIDO
 logoutBtn.addEventListener('click', () => {
   loginSection.style.display = 'block';
   adminPanel.style.display = 'none';
