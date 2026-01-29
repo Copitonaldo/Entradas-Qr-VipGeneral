@@ -1,13 +1,10 @@
 // Importar Supabase
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.4/+esm";
 
-// Configuración de Supabase - NUEVA BASE DE DATOS
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_ANON_KEY = 'SUPABASE_CLIENT_API_KEY';
 
-// Inicializar Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // Contraseña simple
 const PASSWORD = 'admin123';
 
@@ -226,3 +223,4 @@ logoutBtn.addEventListener('click', () => {
   formulariosCache = [];
   renderFormularios();
 });
+
