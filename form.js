@@ -164,7 +164,7 @@ if (formData) {
 async function validarYObtenerReferencia(codigoReferencia, formDbId) {
   const { data, error } = await supabase
     .from('referencias_usos')
-    .select('id, usos_disponibles')
+    .select('id, usos_disponibles, tipo_entrada')
     .eq('formulario_id', formDbId)
     .eq('codigo_referencia', codigoReferencia)
     .single();
@@ -329,7 +329,8 @@ if (btnConfirmar) {
         nombre_completo: toTitleCase(nombre),
         cedula: cedula,
         edad: edadInt,
-        referencia_usada: referencia
+        referencia_usada: referencia,
+        tipo_entrada: validacionRef.datosReferencia.tipo_entrada
       };
       // Añadir los nuevos campos si existen
       if (numero) {
