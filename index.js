@@ -1,11 +1,13 @@
 // Importar Supabase
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.4/+esm";
 
+// 🔑 Configuración de Supabase — ¡YA CONFIGURADA CON TUS DATOS!
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co';
-const SUPABASE_ANON_KEY = 'SUPABASE_CLIENT_API_KEY';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsam52YXZlZW9wdGxiY3VnYm1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTc4ODUsImV4cCI6MjA3ODM3Mzg4NX0.hucHM1tnNxZ0_th6bEKVjeVe-FUO-JPrwjxAkSsWRcs';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-// Contraseña simple
+
+// Contraseña simple (mejorar en producción si es necesario)
 const PASSWORD = 'admin123';
 
 // Variables del DOM
@@ -61,7 +63,7 @@ function renderFormularios() {
     tr.innerHTML = `
       <td>${f.codigo}</td>
       <td>${f.nombre}</td>
-      <td><img src="${f.imagenFondoUrl}" alt="Fondo" class="thumb" /></td>
+      <td><img src="${f.imagenFondoUrl}" alt="Fondo" class="thumb" style="width:60px;height:auto;" /></td>
       <td>
         <a href="form.html?id=${f.codigo}" target="_blank">Formulario Público</a> |
         <a href="respuestas.html?id=${f.codigo}" target="_blank">Lista de Datos</a> |
@@ -156,7 +158,7 @@ window.borrarFormulario = async function(codigoForm, db_id) {
       .delete()
       .eq('formulario_id', db_id);
 
-    if (deleteContadorError && deleteContadorError.code !== 'PGRST116') { // PGRST116: No rows found
+    if (deleteContadorError && deleteContadorError.code !== 'PGRST116') {
       throw deleteContadorError;
     }
 
@@ -167,7 +169,7 @@ window.borrarFormulario = async function(codigoForm, db_id) {
       .eq('id', db_id)
       .single();
 
-    if (fetchImageError && fetchImageError.code !== 'PGRST116') { // PGRST116: No rows found
+    if (fetchImageError && fetchImageError.code !== 'PGRST116') {
       throw fetchImageError;
     }
 
@@ -176,10 +178,8 @@ window.borrarFormulario = async function(codigoForm, db_id) {
       const { error: deleteImageError } = await supabase.storage
         .from('form-backgrounds')
         .remove([imagePath]);
-      // No lanzar error si la imagen no se encuentra, podría haber sido borrada manualmente o no existir.
       if (deleteImageError && deleteImageError.statusCode !== '404' && !deleteImageError.message.includes("Object not found")) {
-          console.warn("Advertencia al borrar imagen de Supabase Storage:", deleteImageError);
-          // Opcional: alert('Advertencia: No se pudo borrar la imagen del almacenamiento, pero el formulario se eliminará.');
+        console.warn("Advertencia al borrar imagen:", deleteImageError);
       }
     }
 
@@ -192,10 +192,10 @@ window.borrarFormulario = async function(codigoForm, db_id) {
     if (deleteFormularioError) throw deleteFormularioError;
 
     alert(`✅ Formulario "${codigoForm}" y todos sus datos han sido eliminados.`);
-    await cargarFormularios(); // Actualizar lista
+    await cargarFormularios();
 
   } catch (error) {
-    console.error("Error al borrar formulario o datos relacionados:", error);
+    console.error("Error al borrar formulario:", error);
     alert(`❌ Error al borrar formulario: ${error.message}`);
   }
 };
@@ -213,7 +213,7 @@ loginBtn.addEventListener('click', () => {
   }
 });
 
-// Evento: Logout
+// Evento: Logout — ✅ CORREGIDO
 logoutBtn.addEventListener('click', () => {
   loginSection.style.display = 'block';
   adminPanel.style.display = 'none';
@@ -223,4 +223,3 @@ logoutBtn.addEventListener('click', () => {
   formulariosCache = [];
   renderFormularios();
 });
-
