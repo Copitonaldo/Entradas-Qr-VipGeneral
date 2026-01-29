@@ -1,7 +1,7 @@
 // Importar Supabase
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.47.4/+esm";
 
-// Configuración de Supabase 
+// Configuración de Supabase - NUEVA BASE DE DATOS
 const SUPABASE_URL = 'https://tljnvaveeoptlbcugbmk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsam52YXZlZW9wdGxiY3VnYm1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTc4ODUsImV4cCI6MjA3ODM3Mzg4NX0.hucHM1tnNxZ0_th6bEKVjeVe-FUO-JPrwjxAkSsWRcs';
 
@@ -50,7 +50,7 @@ let isSubmitting = false;
 // --- Carga de datos del formulario ---
 async function cargarDatosFormulario() {
   if (!formId) return;
-  console.log(`[DEBUG] Buscando formulario con codigo_form: "${formId}"`);
+  console.log(`[DEBUG] Buscando formulario con codigo_form: "${formId}"`); // Registro de depuración
   const { data: formDataResult, error: formError } = await supabase
     .from('formularios')
     .select('id, nombre, imagen_url, min_age, max_age')
@@ -292,12 +292,14 @@ if (btnConfirmar) {
       let nuevoCodigoSecuencialFormateado;
       try {
         console.log(`[DEBUG-CONTADOR] Iniciando lógica del contador para el formulario_id: ${currentFormDbId}`);
+        // --- CORRECCIÓN ---
+        // Se corrige la desestructuración para que coincida con la respuesta de Supabase v2 { data, error }
         let { data: contadorData, error: contadorError } = await supabase
           .from('contadores_formularios')
           .select('ultimo_codigo')
           .eq('formulario_id', currentFormDbId)
           .single();
-        if (contadorError && contadorError.code !== 'PGRST116') {
+        if (contadorError && contadorError.code !== 'PGRST116') { // PGRST116 significa "no rows returned"
           console.error('[DEBUG-CONTADOR] Error al LEER el contador:', JSON.stringify(contadorError, null, 2));
           throw contadorError;
         }
@@ -330,6 +332,7 @@ if (btnConfirmar) {
         btnConfirmar.textContent = originalButtonText;
         return;
       }
+      // --- CORRECCIÓN AQUÍ ---
       const nuevaRespuesta = {
         formulario_id: currentFormDbId,
         codigo_secuencial: nuevoCodigoSecuencialFormateado,
@@ -338,12 +341,14 @@ if (btnConfirmar) {
         edad: edadInt,
         referencia_usada: referencia
       };
+      // Añadir los nuevos campos si existen
       if (numero) {
         nuevaRespuesta.numero_telefono = numero;
       }
       if (correo) {
         nuevaRespuesta.correo_electronico = correo;
       }
+      // --- FIN CORRECCIÓN ---
       let insertDataResponse;
       try {
         insertDataResponse = await supabase
@@ -353,7 +358,7 @@ if (btnConfirmar) {
           .single();
         if (insertDataResponse.error) {
           console.error("Error guardando respuesta en Supabase:", insertDataResponse.error);
-          console.log("[DEBUG] Objeto de error completo de Supabase al insertar:", JSON.stringify(insertDataResponse.error, null, 2));
+          console.log("[DEBUG] Objeto de error completo de Supabase al insertar:", JSON.stringify(insertDataResponse.error, null, 2)); // Registro de depuración
           errorMsg.textContent = "Error al guardar los datos. Intente de nuevo. (Ver consola)";
           errorMsg.style.display = 'block';
           isSubmitting = false;
@@ -485,12 +490,16 @@ if (guardarBtn) {
       } else {
         clone.style.backgroundColor = '#ffffff';
       }
+      // --- MODIFICACIÓN CLAVE ---
+      // Cambiamos el estilo del contenedor QR en el clon para que coincida con el CSS actualizado.
       const qrAbsoluteDivInClone = clone.querySelector('.qr-absolute');
       if (qrAbsoluteDivInClone) {
         qrAbsoluteDivInClone.style.position = 'absolute';
-        qrAbsoluteDivInClone.style.top = '60%';
-        qrAbsoluteDivInClone.style.left = '150px';
-        qrAbsoluteDivInClone.style.transform = 'translate(-50%, -50%)';
+        qrAbsoluteDivInClone.style.top = '60%'; // Misma posición que en el CSS
+        qrAbsoluteDivInClone.style.left = '150px'; // Misma posición que en el CSS
+        // El transform del CSS original (translate(-50%, -50%)) se mantiene aquí para alinear el centro del QR en la posición.
+        // Si el CSS cambia a translateX(-50%) translateY(-50%), se debe mantener aquí.
+        qrAbsoluteDivInClone.style.transform = 'translate(-50%, -50%)'; // Ajuste final para centrar el elemento en la posición
         qrAbsoluteDivInClone.style.background = '#ffffff';
         qrAbsoluteDivInClone.style.padding = getComputedStyle(elementToCapture.querySelector('.qr-absolute')).padding;
         qrAbsoluteDivInClone.style.borderRadius = getComputedStyle(elementToCapture.querySelector('.qr-absolute')).borderRadius;
@@ -500,6 +509,7 @@ if (guardarBtn) {
         qrAbsoluteDivInClone.style.alignItems = 'center';
         qrAbsoluteDivInClone.style.zIndex = '10';
       }
+      // --- FIN DE LA MODIFICACIÓN CLAVE ---
       const qrCanvasInClone = clone.querySelector('#qrCanvas');
       if (qrCanvasInClone) {
         const originalQrCanvas = document.getElementById('qrCanvas');
@@ -590,6 +600,62 @@ Ref: ${outReferencia.textContent}`;
       console.error("Error al cargar html2canvas o en la lógica de guardado:", error);
       alert("No se pudo cargar la funcionalidad para guardar la imagen o hubo un error. Verifique su conexión o intente más tarde.");
     }
+  });
+}
+
+// ✅ NUEVO: Evento para botón "Generar QR" (vista previa sin guardar)
+const generarQRBtn = document.getElementById('generarQRBtn');
+if (generarQRBtn) {
+  generarQRBtn.addEventListener('click', () => {
+    const nombre = inputNombre?.value?.trim() || '';
+    const cedulaRaw = inputCedula?.value?.replace(/\D/g, '') || '';
+    const edadValue = inputEdad?.value?.trim() || '';
+    const referenciaValue = inputReferencia?.value?.trim() || '';
+
+    if (!nombre || !/^\d{8}$/.test(cedulaRaw) || !edadValue || !referenciaValue) {
+      errorMsg.textContent = 
+        !nombre ? 'Debe ingresar un nombre.' :
+        !/^\d{8}$/.test(cedulaRaw) ? 'La cédula debe tener exactamente 8 dígitos.' :
+        !edadValue ? 'Debe ingresar una edad.' : 'Debe ingresar un código de referencia.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    const edad = parseInt(edadValue);
+    if (isNaN(edad) || edad < 0) {
+      errorMsg.textContent = 'Edad inválida.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    // Mostrar vista previa del ticket
+    formData.style.display = 'none';
+    confirmacionDatos.style.display = 'none';
+    entradaGenerada.style.display = 'block';
+
+    outNombre.textContent = toTitleCase(nombre);
+    outCedula.textContent = formatCedula(cedulaRaw);
+    outEdad.textContent = `${edad} años`;
+    outNumero.textContent = inputNumero?.value?.trim() || '-';
+    outCorreo.textContent = inputCorreo?.value?.trim() || '-';
+    outCodigo.textContent = 'PREV-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+    outReferencia.textContent = referenciaValue;
+    outReferenciaContenedor.style.display = 'block';
+    if (codigoQR) codigoQR.textContent = "Código: " + outCodigo.textContent;
+
+    const qrCanvasElement = document.getElementById('qrCanvas');
+    if (qrCanvasElement) {
+      let datosQR = `Nombre: ${nombre}\nCédula: ${cedulaRaw}\nEdad: ${edad}\nRef: ${referenciaValue}`;
+      QRCode.toCanvas(qrCanvasElement, datosQR, {
+        width: 70,
+        height: 70,
+        margin: 1
+      }, error => {
+        if (error) console.error("Error generando QR:", error);
+      });
+    }
+
+    errorMsg.style.display = 'none';
   });
 }
 
