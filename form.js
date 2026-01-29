@@ -181,7 +181,7 @@ async function validarYObtenerReferencia(codigoReferencia, formDbId) {
   return { valida: true, datosReferencia: data };
 }
 async function decrementarUsoReferencia(idReferencia) {
-  const {  refData, error: fetchError } = await supabase
+  const { data: refData, error: fetchError } = await supabase
     .from('referencias_usos')
     .select('usos_disponibles')
     .eq('id', idReferencia)
