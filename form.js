@@ -291,7 +291,7 @@ if (btnConfirmar) {
       }
       if (codigoQR) codigoQR.textContent = "Código: " + insertData.codigo_secuencial;
 
-      const formDisplayName = (formTitleElement.textContent || "Evento").replace("Formulario: ", "").trim();
+      const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
       let datosQR = `${formDisplayName}
 Nombre: ${insertData.nombre_completo}
 Cédula: ${insertData.cedula}
@@ -366,11 +366,12 @@ if (guardarBtn) {
 
       const clonedCanvas = clone.querySelector('#qrCanvas');
       if (clonedCanvas) {
-        const formDisplayName = (formTitleElement.textContent || "Evento").replace("Formulario: ", "").trim();
-        let datosQR = `${formDisplayName}\nNombre: ${outNombre.textContent}\nCédula: ${outCedula.textContent.replace(/\./g, '')}\nEdad: ${outEdad.textContent}\nCódigo: ${outCodigo.textContent}`;
-        if (outNumero.textContent && outNumero.textContent !== '-') datosQR += `\nNúmero: ${outNumero.textContent}`;
-        if (outCorreo.textContent && outCorreo.textContent !== '-') datosQR += `\nCorreo: ${outCorreo.textContent}`;
-        if (outReferencia.textContent) datosQR += `\nRef: ${outReferencia.textContent}`;
+        const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
+        let datosQR = `${formDisplayName}\nNombre: ${outNombre ? outNombre.textContent : ''}\nCédula: ${outCedula ? outCedula.textContent.replace(/\./g, '') : ''}\nEdad: ${outEdad ? outEdad.textContent : ''}\nCódigo: ${outCodigo ? outCodigo.textContent : ''}`;
+        
+        if (outNumero && outNumero.textContent && outNumero.textContent !== '-') datosQR += `\nNúmero: ${outNumero.textContent}`;
+        if (outCorreo && outCorreo.textContent && outCorreo.textContent !== '-') datosQR += `\nCorreo: ${outCorreo.textContent}`;
+        if (outReferencia && outReferencia.textContent) datosQR += `\nRef: ${outReferencia.textContent}`;
         if (outTipoEntrada && outTipoEntrada.textContent) datosQR += `\nTipo: ${outTipoEntrada.textContent}`;
 
         await new Promise(resolve => {
@@ -393,7 +394,8 @@ if (guardarBtn) {
       ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
 
       const link = document.createElement('a');
-      link.download = `${outNombre.textContent}${outCodigo.textContent}.jpg`;
+      const fileName = (outNombre ? outNombre.textContent.trim() : 'Entrada') + (outCodigo ? outCodigo.textContent.trim() : '') + '.jpg';
+      link.download = fileName;
       link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
       link.click();
       document.body.removeChild(clone);
