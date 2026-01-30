@@ -110,13 +110,12 @@ function formatSequentialCode(number) {
   return number.toString().padStart(3, '0');
 }
 
-// --- Evento: Enviar formulario (botón "Generar QR") ---
+// --- Evento: Enviar formulario ---
 if (formData) {
   formData.addEventListener('submit', async (event) => {
     event.preventDefault();
     errorMsg.style.display = 'none';
 
-    // Validar que los elementos existan
     if (!inputNombre || !inputCedula || !inputEdad || !inputReferencia) {
       errorMsg.textContent = "Error: Formulario incompleto. Recargue la página.";
       errorMsg.style.display = 'block';
@@ -131,7 +130,7 @@ if (formData) {
     const referenciaValue = inputReferencia.value.trim();
 
     if (!nombre || !/^\d{8}$/.test(cedulaRaw) || !edadValue || !referenciaValue) {
-      errorMsg.textContent = 
+      errorMsg.textContent =
         !nombre ? 'Debe ingresar un nombre.' :
         !/^\d{8}$/.test(cedulaRaw) ? 'La cédula debe tener exactamente 8 dígitos.' :
         !edadValue ? 'Debe ingresar una edad.' : 'Debe ingresar un código de referencia.';
@@ -151,11 +150,6 @@ if (formData) {
     }
 
     const edad = parseInt(edadValue);
-    if (isNaN(edad) || edad < 0) {
-        errorMsg.textContent = 'Edad inválida.';
-        errorMsg.style.display = 'block';
-        return;
-    }
     if (currentMinAge !== null && edad < currentMinAge) {
       errorMsg.textContent = `Error: Edad mínima es ${currentMinAge}.`;
       errorMsg.style.display = 'block';
@@ -243,7 +237,6 @@ if (btnConfirmar) {
         return;
       }
 
-      // Contador
       let nuevoCodigoSecuencial;
       let { data: contador, error: cntErr } = await supabase
         .from('contadores_formularios')
@@ -275,37 +268,89 @@ if (btnConfirmar) {
 
       await decrementarUsoReferencia(validRef.datosReferencia.id);
 
-      // Mostrar ticket
       if (outNombre) outNombre.textContent = insertData.nombre_completo;
       if (outCedula) outCedula.textContent = formatCedula(insertData.cedula);
       if (outEdad) outEdad.textContent = `${insertData.edad} años`;
-      if (outNumero) outNumero.textContent = insertData.numero_telefono || '-';
-      if (outCorreo) outCorreo.textContent = insertData.correo_electronico || '-';
       if (outCodigo) outCodigo.textContent = insertData.codigo_secuencial;
       if (outReferencia) outReferencia.textContent = insertData.referencia_usada;
-      if (outReferenciaContenedor) outReferenciaContenedor.style.display = 'block';
-
       if (outTipoEntrada && insertData.tipo_entrada) {
         outTipoEntrada.textContent = insertData.tipo_entrada;
-        if (outTipoEntradaContenedor) outTipoEntradaContenedor.style.display = 'block';
       }
-      if (codigoQR) codigoQR.textContent = "Código: " + insertData.codigo_secuencial;
 
-      const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
-      let datosQR = `${formDisplayName}
-Nombre: ${insertData.nombre_completo}
-Cédula: ${insertData.cedula}
-Edad: ${insertData.edad}
-Código: ${insertData.codigo_secuencial}`;
-      if (insertData.numero_telefono) datosQR += `\nNúmero: ${insertData.numero_telefono}`;
-      if (insertData.correo_electronico) datosQR += `\nCorreo: ${insertData.correo_electronico}`;
-      if (insertData.referencia_usada) datosQR += `\nRef: ${insertData.referencia_usada}`;
-      if (insertData.tipo_entrada) datosQR += `\nTipo: ${insertData.tipo_entrada}`;
+      const wrap = document.querySelector('.ticket-img-wrap');
+      if (wrap) {
+        wrap.style.containerType = 'inline-size';
+        let overlay = wrap.querySelector('.datos-overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.className = 'datos-overlay';
+          wrap.appendChild(overlay);
+        }
 
-      if (qrCanvas) {
-        QRCode.toCanvas(qrCanvas, datosQR, { width: 70, height: 70, margin: 1 }, err => {
-          if (err) console.error('Error QR:', err);
+        overlay.style.position = 'absolute';
+        overlay.style.top = '35%';
+        overlay.style.left = '25%';
+        overlay.style.color = '#fff';
+        overlay.style.fontSize = '2.2cqw';
+        overlay.style.fontFamily = 'Arial, sans-serif';
+        overlay.style.zIndex = '11';
+        overlay.style.pointerEvents = 'none';
+        overlay.style.textShadow = '0 0 3px #000';
+
+        overlay.innerHTML = '';
+        const campos = [
+            { l: 'Nombre:', v: insertData.nombre_completo },
+            { l: 'Cédula:', v: formatCedula(insertData.cedula) },
+            { l: 'Edad:', v: `${insertData.edad} años` },
+            { l: 'CÓDIGO:', v: insertData.codigo_secuencial },
+            { l: 'Referencia:', v: insertData.referencia_usada }
+        ];
+        if (insertData.tipo_entrada) campos.push({ l: 'Tipo de entrada:', v: insertData.tipo_entrada });
+
+        campos.forEach(c => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.marginBottom = '0.3cqw';
+            const b = document.createElement('b');
+            b.style.width = '14cqw';
+            b.textContent = c.l;
+            const s = document.createElement('span');
+            s.textContent = c.v;
+            row.appendChild(b);
+            row.appendChild(s);
+            overlay.appendChild(row);
         });
+
+        const qrBox = wrap.querySelector('.qr-absolute');
+        if (qrBox) {
+          qrBox.style.top = '35%';
+          qrBox.style.left = '4%';
+          qrBox.style.width = '16%';
+          qrBox.style.height = 'auto';
+          qrBox.style.background = '#fff';
+          qrBox.style.padding = '0.8cqw';
+          qrBox.style.borderRadius = '0px';
+          qrBox.style.boxShadow = '0 0.5cqw 1cqw rgba(0,0,0,0.3)';
+        }
+
+        const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
+        let datosQR = `${formDisplayName}\nNombre: ${insertData.nombre_completo}\nCédula: ${insertData.cedula}\nCódigo: ${insertData.codigo_secuencial}`;
+
+        if (qrCanvas) {
+          await QRCode.toCanvas(qrCanvas, datosQR, { width: 300, margin: 1 });
+          qrCanvas.style.width = '100%';
+          qrCanvas.style.height = 'auto';
+          qrCanvas.style.display = 'block';
+          qrCanvas.style.borderRadius = '0px';
+        }
+        if (codigoQR) {
+           codigoQR.textContent = "CÓDIGO: " + insertData.codigo_secuencial;
+           codigoQR.style.fontSize = '1.8cqw';
+           codigoQR.style.marginTop = '0.5cqw';
+           codigoQR.style.color = '#000';
+           codigoQR.style.fontWeight = 'bold';
+           codigoQR.style.textShadow = 'none';
+        }
       }
 
       confirmacionDatos.style.display = 'none';
@@ -336,96 +381,80 @@ if (btnCorregir) {
 if (guardarBtn) {
   guardarBtn.addEventListener('click', async () => {
     try {
-      console.log("Iniciando captura de imagen...");
-      if (typeof html2canvas === 'undefined') {
-        throw new Error('La librería html2canvas no se ha cargado correctamente.');
-      }
-
       const elementToCapture = document.querySelector('#entradaGenerada .ticket-img-wrap');
-      if (!elementToCapture) return alert('No se pudo encontrar el ticket');
+      if (!elementToCapture) return;
 
-      // Crear clon para la captura
       const clone = elementToCapture.cloneNode(true);
-      const targetWidth = 2500;
-      const targetHeight = 960;
-      const baseWidth = elementToCapture.offsetWidth || 500;
-      const baseHeight = elementToCapture.offsetHeight || 170;
+      const baseWidth = 500;
+      const baseHeight = 170;
+      const scaleFactor = 5;
 
-      // Estilo del clon (fuera de vista)
       clone.style.width = `${baseWidth}px`;
       clone.style.height = `${baseHeight}px`;
       clone.style.position = 'fixed';
       clone.style.left = '-10000px';
       clone.style.top = '0';
-      clone.style.backgroundColor = '#ffffff';
+      clone.style.borderRadius = '0px';
       document.body.appendChild(clone);
 
-      // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
+      const bg = clone.querySelector('.ticket-bg');
+      if (bg) bg.style.borderRadius = '0px';
+
       const qrAbsolute = clone.querySelector('.qr-absolute');
       if (qrAbsolute) {
-        qrAbsolute.style.position = 'absolute';
-        qrAbsolute.style.top = '50%';
-        qrAbsolute.style.left = '100px'; // Reducido de 150px para mover más a la izquierda
-        qrAbsolute.style.transform = 'translate(-50%, -50%)';
-        qrAbsolute.style.display = 'flex';
-        qrAbsolute.style.flexDirection = 'column';
-        qrAbsolute.style.alignItems = 'center';
-        qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
-        qrAbsolute.style.padding = '6px';
+        qrAbsolute.style.top = '35%';
+        qrAbsolute.style.left = '4%';
+        qrAbsolute.style.width = '16%';
+        qrAbsolute.style.padding = '4px';
+        qrAbsolute.style.background = '#fff';
         qrAbsolute.style.borderRadius = '0px';
+      }
+
+      const clOverlay = clone.querySelector('.datos-overlay');
+      if (clOverlay) {
+        clOverlay.style.top = '35%';
+        clOverlay.style.left = '25%';
+        clOverlay.style.fontSize = '11px';
+        clOverlay.style.color = '#fff';
+        clOverlay.style.textShadow = '0 0 3px #000';
+        const labels = clOverlay.querySelectorAll('b');
+        labels.forEach(b => b.style.width = '70px');
       }
 
       const clonedCanvas = clone.querySelector('#qrCanvas');
       if (clonedCanvas) {
         const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
-        let datosQR = `${formDisplayName}\nNombre: ${outNombre ? outNombre.textContent : ''}\nCédula: ${outCedula ? outCedula.textContent.replace(/\./g, '') : ''}\nEdad: ${outEdad ? outEdad.textContent : ''}\nCódigo: ${outCodigo ? outCodigo.textContent : ''}`;
-        
-        if (outNumero && outNumero.textContent && outNumero.textContent !== '-') datosQR += `\nNúmero: ${outNumero.textContent}`;
-        if (outCorreo && outCorreo.textContent && outCorreo.textContent !== '-') datosQR += `\nCorreo: ${outCorreo.textContent}`;
-        if (outReferencia && outReferencia.textContent) datosQR += `\nRef: ${outReferencia.textContent}`;
-        if (outTipoEntrada && outTipoEntrada.textContent) datosQR += `\nTipo: ${outTipoEntrada.textContent}`;
+        let datosQR = `${formDisplayName}\nNombre: ${outNombre.textContent}\nCédula: ${outCedula.textContent.replace(/\./g, '')}\nCódigo: ${outCodigo.textContent}`;
 
-        await new Promise(resolve => {
-          QRCode.toCanvas(clonedCanvas, datosQR, { width: 70, height: 70, margin: 1 }, resolve);
-        });
+        await QRCode.toCanvas(clonedCanvas, datosQR, { width: 400, margin: 1 });
+        clonedCanvas.style.width = '100%';
+        clonedCanvas.style.height = 'auto';
+        clonedCanvas.style.borderRadius = '0px';
       }
 
-      await new Promise(r => setTimeout(r, 250));
+      const clCodigoQR = clone.querySelector('#codigoQR');
+      if (clCodigoQR) {
+          clCodigoQR.style.fontSize = '9px';
+          clCodigoQR.style.color = '#000';
+          clCodigoQR.style.textShadow = 'none';
+      }
 
-      console.log("Generando canvas con html2canvas...");
+      await new Promise(r => setTimeout(r, 300));
+
       const canvas = await html2canvas(clone, {
         useCORS: true,
-        scale: targetWidth / baseWidth,
-        backgroundColor: '#ffffff',
-        logging: true
+        scale: scaleFactor,
+        backgroundColor: null
       });
 
-      console.log("Redimensionando a 2500x960...");
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetWidth;
-      finalCanvas.height = targetHeight;
-      const ctx = finalCanvas.getContext('2d');
-      // Dibujar el canvas capturado en el canvas final de alta resolución
-      ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
-
-      console.log("Iniciando descarga...");
       const link = document.createElement('a');
-      const nombre = (outNombre ? outNombre.textContent.trim() : 'Entrada');
-      const safeCodigo = (outCodigo ? outCodigo.textContent.trim() : '');
-      const fileName = `${safeCodigo}${nombre}.jpg`;
-      
-      link.download = fileName;
-      link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
-      document.body.appendChild(link);
+      link.download = `${outCodigo.textContent}${outNombre.textContent}.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.9);
       link.click();
-      document.body.removeChild(link);
-      
-      // Limpieza
+
       document.body.removeChild(clone);
-      console.log("Proceso completado con éxito.");
     } catch (e) {
-      console.error("Error detallado al guardar imagen:", e);
-      alert('Error al guardar imagen: ' + e.message);
+      console.error("Error al guardar imagen:", e);
     }
   });
 }
