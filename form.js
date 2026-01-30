@@ -52,7 +52,7 @@ let isSubmitting = false;
 // --- Carga de datos del formulario ---
 async function cargarDatosFormulario() {
   if (!formId) return;
-  const {  formDataResult, error: formError } = await supabase
+  const { data: formDataResult, error: formError } = await supabase
     .from('formularios')
     .select('id, nombre, imagen_url, min_age, max_age')
     .eq('codigo_form', formId)
@@ -198,7 +198,7 @@ async function validarYObtenerReferencia(codigoReferencia, formDbId) {
 }
 
 async function decrementarUsoReferencia(idReferencia) {
-  const {  refData, error } = await supabase
+  const { data: refData, error } = await supabase
     .from('referencias_usos')
     .select('usos_disponibles')
     .eq('id', idReferencia)
@@ -231,7 +231,7 @@ if (btnConfirmar) {
         return;
       }
 
-      const {  existing } = await supabase
+      const { data: existing } = await supabase
         .from('respuestas')
         .select('cedula')
         .eq('formulario_id', currentFormDbId)
@@ -245,7 +245,7 @@ if (btnConfirmar) {
 
       // Contador
       let nuevoCodigoSecuencial;
-      let {  contador, error: cntErr } = await supabase
+      let { data: contador, error: cntErr } = await supabase
         .from('contadores_formularios')
         .select('ultimo_codigo')
         .eq('formulario_id', currentFormDbId)
@@ -270,7 +270,7 @@ if (btnConfirmar) {
       if (numero) nuevaRespuesta.numero_telefono = numero;
       if (correo) nuevaRespuesta.correo_electronico = correo;
 
-      const {  insertData, error: insErr } = await supabase.from('respuestas').insert([nuevaRespuesta]).select().single();
+      const { data: insertData, error: insErr } = await supabase.from('respuestas').insert([nuevaRespuesta]).select().single();
       if (insErr) throw insErr;
 
       await decrementarUsoReferencia(validRef.datosReferencia.id);
@@ -336,104 +336,96 @@ if (btnCorregir) {
 if (guardarBtn) {
   guardarBtn.addEventListener('click', async () => {
     try {
-      const html2canvas = (await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.esm.min.js')).default;
-      const elementToCapture = document.querySelector('#entradaGenerada .ticket-img-wrap');
-      if (!elementToCapture) {
-        console.error("Elemento '.ticket-img-wrap' no encontrado para captura.");
-        alert("Error: No se pudo encontrar el contenido del ticket para guardar.");
-        return;
+      console.log("Iniciando captura de imagen...");
+      if (typeof html2canvas === 'undefined') {
+        throw new Error('La librería html2canvas no se ha cargado correctamente.');
       }
+
+      const elementToCapture = document.querySelector('#entradaGenerada .ticket-img-wrap');
+      if (!elementToCapture) return alert('No se pudo encontrar el ticket');
+
+      // Crear clon para la captura
       const clone = elementToCapture.cloneNode(true);
-      const targetOutputWidthPx = 2500;
-      const targetOutputHeightPx = 960;
-      const cloneBaseWidth = elementToCapture.offsetWidth;
-      const cloneBaseHeight = elementToCapture.offsetHeight;
+      const targetWidth = 2500;
+      const targetHeight = 960;
+      const baseWidth = elementToCapture.offsetWidth || 500;
+      const baseHeight = elementToCapture.offsetHeight || 170;
 
-      // ✅ CORRECCIONES CLAVE AQUÍ (solo 3 líneas)
-      clone.style.borderRadius = '0'; // ← Elimina bordes redondeados
-      clone.style.boxShadow = 'none';
-      clone.style.overflow = 'visible';
-
-      clone.style.width = `${cloneBaseWidth}px`;
-      clone.style.height = `${cloneBaseHeight}px`;
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
+      // Estilo del clon (fuera de vista)
+      clone.style.width = `${baseWidth}px`;
+      clone.style.height = `${baseHeight}px`;
+      clone.style.position = 'fixed';
+      clone.style.left = '-10000px';
+      clone.style.top = '0';
+      clone.style.backgroundColor = '#ffffff';
       document.body.appendChild(clone);
 
-      await new Promise(resolve => setTimeout(resolve, 250));
+      // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
+      const qrAbsolute = clone.querySelector('.qr-absolute');
+      if (qrAbsolute) {
+        qrAbsolute.style.position = 'absolute';
+        qrAbsolute.style.top = '50%';
+        qrAbsolute.style.left = '100px'; // Reducido de 150px para mover más a la izquierda
+        qrAbsolute.style.transform = 'translate(-50%, -50%)';
+        qrAbsolute.style.display = 'flex';
+        qrAbsolute.style.flexDirection = 'column';
+        qrAbsolute.style.alignItems = 'center';
+        qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
+        qrAbsolute.style.padding = '6px';
+        qrAbsolute.style.borderRadius = '0px';
+      }
 
-      const scaleFactor = targetOutputWidthPx / cloneBaseWidth;
-      html2canvas(clone, {
+      const clonedCanvas = clone.querySelector('#qrCanvas');
+      if (clonedCanvas) {
+        const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
+        let datosQR = `${formDisplayName}\nNombre: ${outNombre ? outNombre.textContent : ''}\nCédula: ${outCedula ? outCedula.textContent.replace(/\./g, '') : ''}\nEdad: ${outEdad ? outEdad.textContent : ''}\nCódigo: ${outCodigo ? outCodigo.textContent : ''}`;
+        
+        if (outNumero && outNumero.textContent && outNumero.textContent !== '-') datosQR += `\nNúmero: ${outNumero.textContent}`;
+        if (outCorreo && outCorreo.textContent && outCorreo.textContent !== '-') datosQR += `\nCorreo: ${outCorreo.textContent}`;
+        if (outReferencia && outReferencia.textContent) datosQR += `\nRef: ${outReferencia.textContent}`;
+        if (outTipoEntrada && outTipoEntrada.textContent) datosQR += `\nTipo: ${outTipoEntrada.textContent}`;
+
+        await new Promise(resolve => {
+          QRCode.toCanvas(clonedCanvas, datosQR, { width: 70, height: 70, margin: 1 }, resolve);
+        });
+      }
+
+      await new Promise(r => setTimeout(r, 250));
+
+      console.log("Generando canvas con html2canvas...");
+      const canvas = await html2canvas(clone, {
         useCORS: true,
-        scale: scaleFactor,
+        scale: targetWidth / baseWidth,
         backgroundColor: '#ffffff',
-        logging: true,
-        onclone: (documentCloned, clonedElement) => {
-          const clonedCanvasEl = clonedElement.querySelector('#qrCanvas');
-          if (clonedCanvasEl) {
-            // ✅ Usar valores seguros (evita null)
-            const nombre = outNombre?.textContent || '';
-            const cedula = outCedula?.textContent || '';
-            const edad = outEdad?.textContent || '';
-            const codigo = outCodigo?.textContent || '';
-
-            let datosQRClone = `Nombre: ${nombre}\nCédula: ${cedula}\nEdad: ${edad}\nCódigo: ${codigo}`;
-            if (outNumero?.textContent && outNumero.textContent !== '-') {
-                datosQRClone += `\nNúmero: ${outNumero.textContent}`;
-            }
-            if (outCorreo?.textContent && outCorreo.textContent !== '-') {
-                datosQRClone += `\nCorreo: ${outCorreo.textContent}`;
-            }
-            if (outReferenciaContenedor?.style.display !== 'none' && outReferencia?.textContent) {
-                datosQRClone += `\nRef: ${outReferencia.textContent}`;
-            }
-            if (outTipoEntradaContenedor?.style.display !== 'none' && outTipoEntrada?.textContent) {
-                datosQRClone += `\nTipo: ${outTipoEntrada.textContent}`;
-            }
-
-            QRCode.toCanvas(clonedCanvasEl, datosQRClone, { 
-              width: parseInt(clonedCanvasEl.style.width) || 70,
-              height: parseInt(clonedCanvasEl.style.height) || 70,
-              margin: 1
-            }, function (error) {
-              if (error) console.error('Error re-dibujando QR en clon:', error);
-            });
-          }
-          const clonedQrLabel = clonedElement.querySelector('.qr-code-label');
-          if (clonedQrLabel) {
-            clonedQrLabel.textContent = "Código: " + (outCodigo?.textContent || '');
-          }
-        }
-      }).then(canvasFromHtml2Canvas => {
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = targetOutputWidthPx;
-        finalCanvas.height = targetOutputHeightPx;
-        const finalCtx = finalCanvas.getContext('2d');
-        if (clone.style.backgroundColor === 'transparent') {
-            finalCtx.fillStyle = '#ffffff';
-            finalCtx.fillRect(0, 0, targetOutputWidthPx, targetOutputHeightPx);
-        }
-        finalCtx.drawImage(
-          canvasFromHtml2Canvas,
-          0, 0, canvasFromHtml2Canvas.width, canvasFromHtml2Canvas.height,
-          0, 0, targetOutputWidthPx, targetOutputHeightPx
-        );
-        const link = document.createElement('a');
-        const nombreArchivo = `${outCodigo?.textContent || 'TICKET'}${(outNombre?.textContent || 'nombre')}.jpg`;
-        link.download = nombreArchivo;
-        link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
-        link.click();
-        document.body.removeChild(clone);
-      }).catch(err => {
-        console.error("Error al generar la imagen con html2canvas:", err);
-        alert("Error al generar la imagen. Intente de nuevo.");
-        if (document.body.contains(clone)) {
-          document.body.removeChild(clone);
-        }
+        logging: true
       });
-    } catch (error) {
-      console.error("Error al cargar html2canvas o en la lógica de guardado:", error);
-      alert("No se pudo cargar la funcionalidad para guardar la imagen o hubo un error. Verifique su conexión o intente más tarde.");
+
+      console.log("Redimensionando a 2500x960...");
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = targetWidth;
+      finalCanvas.height = targetHeight;
+      const ctx = finalCanvas.getContext('2d');
+      // Dibujar el canvas capturado en el canvas final de alta resolución
+      ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
+
+      console.log("Iniciando descarga...");
+      const link = document.createElement('a');
+      const nombre = (outNombre ? outNombre.textContent.trim() : 'Entrada');
+      const safeCodigo = (outCodigo ? outCodigo.textContent.trim() : '');
+      const fileName = `${safeCodigo}${nombre}.jpg`;
+      
+      link.download = fileName;
+      link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Limpieza
+      document.body.removeChild(clone);
+      console.log("Proceso completado con éxito.");
+    } catch (e) {
+      console.error("Error detallado al guardar imagen:", e);
+      alert('Error al guardar imagen: ' + e.message);
     }
   });
 }
