@@ -52,7 +52,7 @@ let isSubmitting = false;
 // --- Carga de datos del formulario ---
 async function cargarDatosFormulario() {
   if (!formId) return;
-  const { data: formDataResult, error: formError } = await supabase
+  const {  formDataResult, error: formError } = await supabase
     .from('formularios')
     .select('id, nombre, imagen_url, min_age, max_age')
     .eq('codigo_form', formId)
@@ -198,7 +198,7 @@ async function validarYObtenerReferencia(codigoReferencia, formDbId) {
 }
 
 async function decrementarUsoReferencia(idReferencia) {
-  const { data: refData, error } = await supabase
+  const {  refData, error } = await supabase
     .from('referencias_usos')
     .select('usos_disponibles')
     .eq('id', idReferencia)
@@ -231,7 +231,7 @@ if (btnConfirmar) {
         return;
       }
 
-      const { data: existing } = await supabase
+      const {  existing } = await supabase
         .from('respuestas')
         .select('cedula')
         .eq('formulario_id', currentFormDbId)
@@ -245,7 +245,7 @@ if (btnConfirmar) {
 
       // Contador
       let nuevoCodigoSecuencial;
-      let { data: contador, error: cntErr } = await supabase
+      let {  contador, error: cntErr } = await supabase
         .from('contadores_formularios')
         .select('ultimo_codigo')
         .eq('formulario_id', currentFormDbId)
@@ -270,7 +270,7 @@ if (btnConfirmar) {
       if (numero) nuevaRespuesta.numero_telefono = numero;
       if (correo) nuevaRespuesta.correo_electronico = correo;
 
-      const { data: insertData, error: insErr } = await supabase.from('respuestas').insert([nuevaRespuesta]).select().single();
+      const {  insertData, error: insErr } = await supabase.from('respuestas').insert([nuevaRespuesta]).select().single();
       if (insErr) throw insErr;
 
       await decrementarUsoReferencia(validRef.datosReferencia.id);
@@ -346,37 +346,20 @@ if (guardarBtn) {
       const clone = elementToCapture.cloneNode(true);
       const targetOutputWidthPx = 2500;
       const targetOutputHeightPx = 960;
-      const cloneBaseWidth = 500; // ← Fijar ancho base como en PC
-      const cloneBaseHeight = 170; // ← Fijar alto base como en PC
+      const cloneBaseWidth = elementToCapture.offsetWidth;
+      const cloneBaseHeight = elementToCapture.offsetHeight;
 
-      // ✅ APLICAR CORRECCIONES CLAVE AQUÍ
-      clone.style.width = `${cloneBaseWidth}px`;
-      clone.style.height = `${cloneBaseHeight}px`;
+      // ✅ CORRECCIONES CLAVE AQUÍ (solo 3 líneas)
       clone.style.borderRadius = '0'; // ← Elimina bordes redondeados
       clone.style.boxShadow = 'none';
       clone.style.overflow = 'visible';
 
-      // Eliminar bordes redondeados en elementos internos
-      const clonedTicketBg = clone.querySelector('#ticketBg');
-      if (clonedTicketBg) {
-        clonedTicketBg.style.borderRadius = '0';
-        clonedTicketBg.style.objectFit = 'cover';
-      }
-
-      const qrAbsoluteDivInClone = clone.querySelector('.qr-absolute');
-      if (qrAbsoluteDivInClone) {
-        qrAbsoluteDivInClone.style.position = 'absolute';
-        qrAbsoluteDivInClone.style.top = '50%';
-        qrAbsoluteDivInClone.style.left = '100px'; // Ajuste fino
-        qrAbsoluteDivInClone.style.transform = 'translate(-50%, -50%)';
-        qrAbsoluteDivInClone.style.background = 'transparent';
-        qrAbsoluteDivInClone.style.boxShadow = 'none';
-        qrAbsoluteDivInClone.style.padding = '0';
-      }
-
+      clone.style.width = `${cloneBaseWidth}px`;
+      clone.style.height = `${cloneBaseHeight}px`;
       clone.style.position = 'absolute';
       clone.style.left = '-9999px';
       document.body.appendChild(clone);
+
       await new Promise(resolve => setTimeout(resolve, 250));
 
       const scaleFactor = targetOutputWidthPx / cloneBaseWidth;
@@ -388,35 +371,37 @@ if (guardarBtn) {
         onclone: (documentCloned, clonedElement) => {
           const clonedCanvasEl = clonedElement.querySelector('#qrCanvas');
           if (clonedCanvasEl) {
-            const formDisplayName = (formTitleElement.textContent || "Evento").replace("Formulario: ", "").trim();
-            let datosQRClone = `${formDisplayName}
-Nombre: ${outNombre.textContent}
-Cédula: ${outCedula.textContent}
-Edad: ${outEdad.textContent}
-Código: ${outCodigo.textContent}`;
-            if (outNumero.textContent && outNumero.textContent !== '-') {
-                datosQRClone += `
-Número: ${outNumero.textContent}`;
+            // ✅ Usar valores seguros (evita null)
+            const nombre = outNombre?.textContent || '';
+            const cedula = outCedula?.textContent || '';
+            const edad = outEdad?.textContent || '';
+            const codigo = outCodigo?.textContent || '';
+
+            let datosQRClone = `Nombre: ${nombre}\nCédula: ${cedula}\nEdad: ${edad}\nCódigo: ${codigo}`;
+            if (outNumero?.textContent && outNumero.textContent !== '-') {
+                datosQRClone += `\nNúmero: ${outNumero.textContent}`;
             }
-            if (outCorreo.textContent && outCorreo.textContent !== '-') {
-                datosQRClone += `
-Correo: ${outCorreo.textContent}`;
+            if (outCorreo?.textContent && outCorreo.textContent !== '-') {
+                datosQRClone += `\nCorreo: ${outCorreo.textContent}`;
             }
-            if (outReferenciaContenedor.style.display !== 'none' && outReferencia.textContent) {
-                datosQRClone += `
-Ref: ${outReferencia.textContent}`;
+            if (outReferenciaContenedor?.style.display !== 'none' && outReferencia?.textContent) {
+                datosQRClone += `\nRef: ${outReferencia.textContent}`;
             }
-            if (outTipoEntradaContenedor.style.display !== 'none' && outTipoEntrada.textContent) {
-                datosQRClone += `
-Tipo: ${outTipoEntrada.textContent}`;
+            if (outTipoEntradaContenedor?.style.display !== 'none' && outTipoEntrada?.textContent) {
+                datosQRClone += `\nTipo: ${outTipoEntrada.textContent}`;
             }
-            QRCode.toCanvas(clonedCanvasEl, datosQRClone, { width: parseInt(clonedCanvasEl.style.width) || 70, height: parseInt(clonedCanvasEl.style.height) || 70, margin: 1 }, function (error) {
+
+            QRCode.toCanvas(clonedCanvasEl, datosQRClone, { 
+              width: parseInt(clonedCanvasEl.style.width) || 70,
+              height: parseInt(clonedCanvasEl.style.height) || 70,
+              margin: 1
+            }, function (error) {
               if (error) console.error('Error re-dibujando QR en clon:', error);
             });
           }
           const clonedQrLabel = clonedElement.querySelector('.qr-code-label');
           if (clonedQrLabel) {
-            clonedQrLabel.textContent = "Código: " + outCodigo.textContent;
+            clonedQrLabel.textContent = "Código: " + (outCodigo?.textContent || '');
           }
         }
       }).then(canvasFromHtml2Canvas => {
@@ -424,15 +409,17 @@ Tipo: ${outTipoEntrada.textContent}`;
         finalCanvas.width = targetOutputWidthPx;
         finalCanvas.height = targetOutputHeightPx;
         const finalCtx = finalCanvas.getContext('2d');
-        finalCtx.fillStyle = '#ffffff';
-        finalCtx.fillRect(0, 0, targetOutputWidthPx, targetOutputHeightPx);
+        if (clone.style.backgroundColor === 'transparent') {
+            finalCtx.fillStyle = '#ffffff';
+            finalCtx.fillRect(0, 0, targetOutputWidthPx, targetOutputHeightPx);
+        }
         finalCtx.drawImage(
           canvasFromHtml2Canvas,
           0, 0, canvasFromHtml2Canvas.width, canvasFromHtml2Canvas.height,
           0, 0, targetOutputWidthPx, targetOutputHeightPx
         );
         const link = document.createElement('a');
-        const nombreArchivo = `${outCodigo.textContent || 'TICKET'}${(outNombre.textContent || 'nombre')}.jpg`;
+        const nombreArchivo = `${outCodigo?.textContent || 'TICKET'}${(outNombre?.textContent || 'nombre')}.jpg`;
         link.download = nombreArchivo;
         link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
         link.click();
