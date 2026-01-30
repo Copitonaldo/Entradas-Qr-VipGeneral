@@ -358,7 +358,12 @@ if (guardarBtn) {
       clone.style.left = '-10000px';
       clone.style.top = '0';
       clone.style.backgroundColor = '#ffffff';
+      clone.style.borderRadius = '0'; // Remover borde redondeado del contenedor para la descarga
       document.body.appendChild(clone);
+
+      // Remover borde redondeado de elementos internos en el clon
+      const cloneBg = clone.querySelector('.ticket-bg');
+      if (cloneBg) cloneBg.style.borderRadius = '0';
 
       // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
       const qrAbsolute = clone.querySelector('.qr-absolute');
@@ -372,10 +377,11 @@ if (guardarBtn) {
         qrAbsolute.style.alignItems = 'center';
         qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
         qrAbsolute.style.padding = '6px';
-        qrAbsolute.style.borderRadius = '8px';
+        qrAbsolute.style.borderRadius = '0'; // Remover borde redondeado del fondo del QR
       }
 
       const clonedCanvas = clone.querySelector('#qrCanvas');
+      if (clonedCanvas) clonedCanvas.style.borderRadius = '0'; // Remover borde redondeado del canvas QR
       if (clonedCanvas) {
         const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
         let datosQR = `${formDisplayName}\nNombre: ${outNombre ? outNombre.textContent : ''}\nCédula: ${outCedula ? outCedula.textContent.replace(/\./g, '') : ''}\nEdad: ${outEdad ? outEdad.textContent : ''}\nCódigo: ${outCodigo ? outCodigo.textContent : ''}`;
