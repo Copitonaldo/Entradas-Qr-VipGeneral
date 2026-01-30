@@ -131,7 +131,7 @@ if (formData) {
     const referenciaValue = inputReferencia.value.trim();
 
     if (!nombre || !/^\d{8}$/.test(cedulaRaw) || !edadValue || !referenciaValue) {
-      errorMsg.textContent = 
+      errorMsg.textContent =
         !nombre ? 'Debe ingresar un nombre.' :
         !/^\d{8}$/.test(cedulaRaw) ? 'La cédula debe tener exactamente 8 dígitos.' :
         !edadValue ? 'Debe ingresar una edad.' : 'Debe ingresar un código de referencia.';
@@ -358,7 +358,12 @@ if (guardarBtn) {
       clone.style.left = '-10000px';
       clone.style.top = '0';
       clone.style.backgroundColor = '#ffffff';
+      clone.style.borderRadius = '0'; // Remover borde redondeado del contenedor para la descarga
       document.body.appendChild(clone);
+
+      // Remover borde redondeado de elementos internos en el clon
+      const cloneBg = clone.querySelector('.ticket-bg');
+      if (cloneBg) cloneBg.style.borderRadius = '0';
 
       // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
       const qrAbsolute = clone.querySelector('.qr-absolute');
@@ -372,14 +377,15 @@ if (guardarBtn) {
         qrAbsolute.style.alignItems = 'center';
         qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
         qrAbsolute.style.padding = '6px';
-        qrAbsolute.style.borderRadius = '8px';
+        qrAbsolute.style.borderRadius = '0'; // Remover borde redondeado del fondo del QR
       }
 
       const clonedCanvas = clone.querySelector('#qrCanvas');
+      if (clonedCanvas) clonedCanvas.style.borderRadius = '0'; // Remover borde redondeado del canvas QR
       if (clonedCanvas) {
         const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
         let datosQR = `${formDisplayName}\nNombre: ${outNombre ? outNombre.textContent : ''}\nCédula: ${outCedula ? outCedula.textContent.replace(/\./g, '') : ''}\nEdad: ${outEdad ? outEdad.textContent : ''}\nCódigo: ${outCodigo ? outCodigo.textContent : ''}`;
-        
+
         if (outNumero && outNumero.textContent && outNumero.textContent !== '-') datosQR += `\nNúmero: ${outNumero.textContent}`;
         if (outCorreo && outCorreo.textContent && outCorreo.textContent !== '-') datosQR += `\nCorreo: ${outCorreo.textContent}`;
         if (outReferencia && outReferencia.textContent) datosQR += `\nRef: ${outReferencia.textContent}`;
@@ -413,13 +419,13 @@ if (guardarBtn) {
       const nombre = (outNombre ? outNombre.textContent.trim() : 'Entrada');
       const safeCodigo = (outCodigo ? outCodigo.textContent.trim() : '');
       const fileName = `${safeCodigo}${nombre}.jpg`;
-      
+
       link.download = fileName;
       link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Limpieza
       document.body.removeChild(clone);
       console.log("Proceso completado con éxito.");
