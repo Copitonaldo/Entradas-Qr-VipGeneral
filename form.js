@@ -275,7 +275,7 @@ if (btnConfirmar) {
 
       await decrementarUsoReferencia(validRef.datosReferencia.id);
 
-      // Mostrar ticket
+      // Mostrar ticket en la interfaz
       if (outNombre) outNombre.textContent = insertData.nombre_completo;
       if (outCedula) outCedula.textContent = formatCedula(insertData.cedula);
       if (outEdad) outEdad.textContent = `${insertData.edad} años`;
@@ -289,7 +289,79 @@ if (btnConfirmar) {
         outTipoEntrada.textContent = insertData.tipo_entrada;
         if (outTipoEntradaContenedor) outTipoEntradaContenedor.style.display = 'block';
       }
-      if (codigoQR) codigoQR.textContent = "Código: " + insertData.codigo_secuencial;
+      if (codigoQR) codigoQR.textContent = "CÓDIGO: " + insertData.codigo_secuencial;
+
+      // Inyectar Overlay de Datos sobre la imagen del ticket
+      const wrap = document.querySelector('.ticket-img-wrap');
+      if (wrap) {
+        wrap.style.containerType = 'inline-size';
+        let overlay = wrap.querySelector('.datos-overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.className = 'datos-overlay';
+          wrap.appendChild(overlay);
+        }
+        
+        overlay.style.position = 'absolute';
+        overlay.style.top = '28%';
+        overlay.style.left = '18%'; // Ajustado para evitar solapamiento
+        overlay.style.color = '#fff';
+        overlay.style.fontSize = '2.2cqw'; 
+        overlay.style.fontFamily = 'Arial, sans-serif';
+        overlay.style.lineHeight = '1.3';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.zIndex = '11';
+        overlay.style.pointerEvents = 'none';
+        overlay.style.textShadow = '0 0 2px #000';
+
+        overlay.innerHTML = ''; // Limpiar para usar textContent de forma segura
+        const campos = [
+            { l: 'Nombre:', v: insertData.nombre_completo },
+            { l: 'Cédula:', v: formatCedula(insertData.cedula) },
+            { l: 'Edad:', v: `${insertData.edad} años` },
+            { l: 'CÓDIGO:', v: insertData.codigo_secuencial },
+            { l: 'Referencia:', v: insertData.referencia_usada }
+        ];
+        if (insertData.tipo_entrada) campos.push({ l: 'Tipo de entrada:', v: insertData.tipo_entrada });
+
+        campos.forEach(c => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            const b = document.createElement('b');
+            b.style.width = '13cqw'; // Ancho de etiqueta ajustado
+            b.textContent = c.l;
+            const s = document.createElement('span');
+            s.textContent = c.v;
+            row.appendChild(b);
+            row.appendChild(s);
+            overlay.appendChild(row);
+        });
+
+        // Estilos del QR (Más pequeño para evitar solapamiento)
+        const qrBox = wrap.querySelector('.qr-absolute');
+        if (qrBox) {
+          qrBox.style.top = '28%';
+          qrBox.style.left = '2%';
+          qrBox.style.width = '12%'; // Reducido de 14%
+          qrBox.style.transform = 'none';
+          qrBox.style.borderRadius = '0px';
+          qrBox.style.background = 'rgba(255, 255, 255, 0.9)';
+          qrBox.style.padding = '0.6cqw';
+          qrBox.style.boxShadow = '0 0.5cqw 1.5cqw rgba(0,0,0,0.2)';
+        }
+        if (qrCanvas) {
+          qrCanvas.style.borderRadius = '0px';
+          qrCanvas.style.width = '100%';
+          qrCanvas.style.height = 'auto';
+        }
+        if (codigoQR) {
+           codigoQR.style.fontSize = '1.6cqw';
+           codigoQR.style.marginTop = '0.3cqw';
+           codigoQR.style.color = '#000';
+           codigoQR.style.textShadow = 'none';
+        }
+      }
 
       const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
       let datosQR = `${formDisplayName}
@@ -303,7 +375,7 @@ Código: ${insertData.codigo_secuencial}`;
       if (insertData.tipo_entrada) datosQR += `\nTipo: ${insertData.tipo_entrada}`;
 
       if (qrCanvas) {
-        QRCode.toCanvas(qrCanvas, datosQR, { width: 70, height: 70, margin: 1 }, err => {
+        QRCode.toCanvas(qrCanvas, datosQR, { width: 300, height: 300, margin: 1 }, err => {
           if (err) console.error('Error QR:', err);
         });
       }
@@ -344,35 +416,51 @@ if (guardarBtn) {
       const elementToCapture = document.querySelector('#entradaGenerada .ticket-img-wrap');
       if (!elementToCapture) return alert('No se pudo encontrar el ticket');
 
-      // Crear clon para la captura
       const clone = elementToCapture.cloneNode(true);
       const targetWidth = 2500;
       const targetHeight = 960;
-      const baseWidth = elementToCapture.offsetWidth || 500;
-      const baseHeight = elementToCapture.offsetHeight || 170;
+      const baseWidth = 500;
+      const baseHeight = 170;
 
-      // Estilo del clon (fuera de vista)
       clone.style.width = `${baseWidth}px`;
       clone.style.height = `${baseHeight}px`;
       clone.style.position = 'fixed';
       clone.style.left = '-10000px';
       clone.style.top = '0';
       clone.style.backgroundColor = '#ffffff';
+      clone.style.borderRadius = '0px';
       document.body.appendChild(clone);
 
-      // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
+      const bg = clone.querySelector('.ticket-bg');
+      if (bg) bg.style.borderRadius = '0px';
+
       const qrAbsolute = clone.querySelector('.qr-absolute');
       if (qrAbsolute) {
         qrAbsolute.style.position = 'absolute';
-        qrAbsolute.style.top = '50%';
-        qrAbsolute.style.left = '100px'; // Reducido de 150px para mover más a la izquierda
-        qrAbsolute.style.transform = 'translate(-50%, -50%)';
+        qrAbsolute.style.top = '28%';
+        qrAbsolute.style.left = '2%';
+        qrAbsolute.style.width = '12%';
+        qrAbsolute.style.transform = 'none';
         qrAbsolute.style.display = 'flex';
         qrAbsolute.style.flexDirection = 'column';
         qrAbsolute.style.alignItems = 'center';
-        qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
-        qrAbsolute.style.padding = '6px';
+        qrAbsolute.style.background = '#fff';
+        qrAbsolute.style.padding = '3px';
         qrAbsolute.style.borderRadius = '0px';
+        qrAbsolute.style.boxShadow = 'none';
+      }
+
+      const clOverlay = clone.querySelector('.datos-overlay');
+      if (clOverlay) {
+        clOverlay.style.top = '28%';
+        clOverlay.style.left = '18%';
+        clOverlay.style.transform = 'none';
+        clOverlay.style.borderRadius = '0px';
+        clOverlay.style.fontSize = '11px'; 
+        clOverlay.style.color = '#fff';
+        clOverlay.style.textShadow = '0 0 2px #000';
+        const labels = clOverlay.querySelectorAll('b');
+        labels.forEach(b => b.style.width = '65px');
       }
 
       const clonedCanvas = clone.querySelector('#qrCanvas');
@@ -386,29 +474,35 @@ if (guardarBtn) {
         if (outTipoEntrada && outTipoEntrada.textContent) datosQR += `\nTipo: ${outTipoEntrada.textContent}`;
 
         await new Promise(resolve => {
-          QRCode.toCanvas(clonedCanvas, datosQR, { width: 70, height: 70, margin: 1 }, resolve);
+          QRCode.toCanvas(clonedCanvas, datosQR, { width: 400, height: 400, margin: 1 }, resolve);
         });
+        clonedCanvas.style.width = '100%';
+        clonedCanvas.style.height = 'auto';
+        clonedCanvas.style.borderRadius = '0px';
+      }
+      
+      const clCodigoQR = clone.querySelector('#codigoQR');
+      if (clCodigoQR) {
+          clCodigoQR.style.fontSize = '8px';
+          clCodigoQR.style.color = '#000';
+          clCodigoQR.style.textShadow = 'none';
       }
 
       await new Promise(r => setTimeout(r, 250));
 
-      console.log("Generando canvas con html2canvas...");
       const canvas = await html2canvas(clone, {
         useCORS: true,
         scale: targetWidth / baseWidth,
         backgroundColor: '#ffffff',
-        logging: true
+        logging: false
       });
 
-      console.log("Redimensionando a 2500x960...");
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = targetWidth;
       finalCanvas.height = targetHeight;
       const ctx = finalCanvas.getContext('2d');
-      // Dibujar el canvas capturado en el canvas final de alta resolución
       ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
 
-      console.log("Iniciando descarga...");
       const link = document.createElement('a');
       const nombre = (outNombre ? outNombre.textContent.trim() : 'Entrada');
       const safeCodigo = (outCodigo ? outCodigo.textContent.trim() : '');
@@ -420,9 +514,7 @@ if (guardarBtn) {
       link.click();
       document.body.removeChild(link);
       
-      // Limpieza
       document.body.removeChild(clone);
-      console.log("Proceso completado con éxito.");
     } catch (e) {
       console.error("Error detallado al guardar imagen:", e);
       alert('Error al guardar imagen: ' + e.message);
