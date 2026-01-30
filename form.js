@@ -37,6 +37,8 @@ const outCorreo = document.getElementById('outCorreo');
 const outCodigo = document.getElementById('outCodigo');
 const outReferencia = document.getElementById('outReferencia');
 const outReferenciaContenedor = document.getElementById('outReferenciaContenedor');
+const outTipoEntrada = document.getElementById('outTipoEntrada');
+const outTipoEntradaContenedor = document.getElementById('outTipoEntradaContenedor');
 const codigoQR = document.getElementById('codigoQR');
 const qrCanvas = document.getElementById('qrCanvas');
 const entradaGenerada = document.getElementById('entradaGenerada');
@@ -50,7 +52,7 @@ let isSubmitting = false;
 // --- Carga de datos del formulario ---
 async function cargarDatosFormulario() {
   if (!formId) return;
-  const {  formDataResult, error: formError } = await supabase
+  const { data: formDataResult, error: formError } = await supabase
     .from('formularios')
     .select('id, nombre, imagen_url, min_age, max_age')
     .eq('codigo_form', formId)
@@ -129,7 +131,7 @@ if (formData) {
     const referenciaValue = inputReferencia.value.trim();
 
     if (!nombre || !/^\d{8}$/.test(cedulaRaw) || !edadValue || !referenciaValue) {
-      errorMsg.textContent = 
+      errorMsg.textContent =
         !nombre ? 'Debe ingresar un nombre.' :
         !/^\d{8}$/.test(cedulaRaw) ? 'La cédula debe tener exactamente 8 dígitos.' :
         !edadValue ? 'Debe ingresar una edad.' : 'Debe ingresar un código de referencia.';
@@ -165,12 +167,12 @@ if (formData) {
       return;
     }
 
-    confNombre.textContent = toTitleCase(nombre);
-    confCedula.textContent = formatCedula(cedulaRaw);
-    confEdad.textContent = `${edad} años`;
-    confNumero.textContent = numeroValue || '-';
-    confCorreo.textContent = correoValue || '-';
-    confReferencia.textContent = referenciaValue;
+    if (confNombre) confNombre.textContent = toTitleCase(nombre);
+    if (confCedula) confCedula.textContent = formatCedula(cedulaRaw);
+    if (confEdad) confEdad.textContent = `${edad} años`;
+    if (confNumero) confNumero.textContent = numeroValue || '-';
+    if (confCorreo) confCorreo.textContent = correoValue || '-';
+    if (confReferencia) confReferencia.textContent = referenciaValue;
     formData.style.display = 'none';
     entradaGenerada.style.display = 'none';
     confirmacionDatos.style.display = 'block';
@@ -182,7 +184,7 @@ if (formData) {
 async function validarYObtenerReferencia(codigoReferencia, formDbId) {
   const { data, error } = await supabase
     .from('referencias_usos')
-    .select('id, usos_disponibles')
+    .select('id, usos_disponibles, tipo_entrada')
     .eq('formulario_id', formDbId)
     .eq('codigo_referencia', codigoReferencia)
     .single();
@@ -229,7 +231,7 @@ if (btnConfirmar) {
         return;
       }
 
-      const {  existing } = await supabase
+      const { data: existing } = await supabase
         .from('respuestas')
         .select('cedula')
         .eq('formulario_id', currentFormDbId)
@@ -262,25 +264,31 @@ if (btnConfirmar) {
         nombre_completo: toTitleCase(nombre),
         cedula,
         edad: edadInt,
-        referencia_usada: referencia
+        referencia_usada: referencia,
+        tipo_entrada: validRef.datosReferencia.tipo_entrada
       };
       if (numero) nuevaRespuesta.numero_telefono = numero;
       if (correo) nuevaRespuesta.correo_electronico = correo;
 
-      const {  insertData, error: insErr } = await supabase.from('respuestas').insert([nuevaRespuesta]).select().single();
+      const { data: insertData, error: insErr } = await supabase.from('respuestas').insert([nuevaRespuesta]).select().single();
       if (insErr) throw insErr;
 
       await decrementarUsoReferencia(validRef.datosReferencia.id);
 
       // Mostrar ticket
-      outNombre.textContent = insertData.nombre_completo;
-      outCedula.textContent = formatCedula(insertData.cedula);
-      outEdad.textContent = `${insertData.edad} años`;
-      outNumero.textContent = insertData.numero_telefono || '-';
-      outCorreo.textContent = insertData.correo_electronico || '-';
-      outCodigo.textContent = insertData.codigo_secuencial;
-      outReferencia.textContent = insertData.referencia_usada;
-      outReferenciaContenedor.style.display = 'block';
+      if (outNombre) outNombre.textContent = insertData.nombre_completo;
+      if (outCedula) outCedula.textContent = formatCedula(insertData.cedula);
+      if (outEdad) outEdad.textContent = `${insertData.edad} años`;
+      if (outNumero) outNumero.textContent = insertData.numero_telefono || '-';
+      if (outCorreo) outCorreo.textContent = insertData.correo_electronico || '-';
+      if (outCodigo) outCodigo.textContent = insertData.codigo_secuencial;
+      if (outReferencia) outReferencia.textContent = insertData.referencia_usada;
+      if (outReferenciaContenedor) outReferenciaContenedor.style.display = 'block';
+
+      if (outTipoEntrada && insertData.tipo_entrada) {
+        outTipoEntrada.textContent = insertData.tipo_entrada;
+        if (outTipoEntradaContenedor) outTipoEntradaContenedor.style.display = 'block';
+      }
       if (codigoQR) codigoQR.textContent = "Código: " + insertData.codigo_secuencial;
 
       const qrText = `${formTitleElement.textContent.replace('Formulario: ', '')}\nNombre: ${insertData.nombre_completo}\nCédula: ${insertData.cedula}\nCódigo: ${insertData.codigo_secuencial}`;
