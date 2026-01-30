@@ -120,7 +120,7 @@ form#formData button:hover {
 .qr-absolute {
   position: absolute;
   top: 50%;
-  left: 30px; 
+  left: 20px; 
   transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.9); 
   padding: 6px; 
@@ -210,7 +210,7 @@ form#formData button:hover {
     max-width: 100%; 
   }
   .qr-absolute {
-    left: 20px; 
+    left: 15px; 
     padding: 5px;
   }
   #qrCanvas {
@@ -259,7 +259,7 @@ form#formData button:hover {
     padding: 15px 15px 25px 15px;
   }
   .qr-absolute {
-    left: 15px; 
+    left: 10px; 
     padding: 4px;
   }
   #qrCanvas {
