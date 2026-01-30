@@ -291,9 +291,19 @@ if (btnConfirmar) {
       }
       if (codigoQR) codigoQR.textContent = "Código: " + insertData.codigo_secuencial;
 
-      const qrText = `${formTitleElement.textContent.replace('Formulario: ', '')}\nNombre: ${insertData.nombre_completo}\nCédula: ${insertData.cedula}\nCódigo: ${insertData.codigo_secuencial}`;
+      const formDisplayName = (formTitleElement.textContent || "Evento").replace("Formulario: ", "").trim();
+      let datosQR = `${formDisplayName}
+Nombre: ${insertData.nombre_completo}
+Cédula: ${insertData.cedula}
+Edad: ${insertData.edad}
+Código: ${insertData.codigo_secuencial}`;
+      if (insertData.numero_telefono) datosQR += `\nNúmero: ${insertData.numero_telefono}`;
+      if (insertData.correo_electronico) datosQR += `\nCorreo: ${insertData.correo_electronico}`;
+      if (insertData.referencia_usada) datosQR += `\nRef: ${insertData.referencia_usada}`;
+      if (insertData.tipo_entrada) datosQR += `\nTipo: ${insertData.tipo_entrada}`;
+
       if (qrCanvas) {
-        QRCode.toCanvas(qrCanvas, qrText, { width: 70, height: 70 }, err => {
+        QRCode.toCanvas(qrCanvas, datosQR, { width: 70, height: 70, margin: 1 }, err => {
           if (err) console.error('Error QR:', err);
         });
       }
@@ -327,24 +337,64 @@ if (guardarBtn) {
   guardarBtn.addEventListener('click', async () => {
     try {
       const html2canvas = (await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.esm.min.js')).default;
-      const el = document.querySelector('#entradaGenerada .ticket-img-wrap');
-      if (!el) return alert('Ticket no encontrado');
+      const elementToCapture = document.querySelector('#entradaGenerada .ticket-img-wrap');
+      if (!elementToCapture) return alert('No se pudo encontrar el ticket');
 
-      const clone = el.cloneNode(true);
+      const clone = elementToCapture.cloneNode(true);
+      const targetWidth = 2500;
+      const targetHeight = 960;
+      const baseWidth = elementToCapture.offsetWidth;
+      const baseHeight = elementToCapture.offsetHeight;
+
+      clone.style.width = `${baseWidth}px`;
+      clone.style.height = `${baseHeight}px`;
       clone.style.position = 'absolute';
       clone.style.left = '-9999px';
+      clone.style.backgroundColor = '#ffffff';
       document.body.appendChild(clone);
-      await new Promise(r => setTimeout(r, 200));
+
+      const qrAbsolute = clone.querySelector('.qr-absolute');
+      if (qrAbsolute) {
+        qrAbsolute.style.position = 'absolute';
+        qrAbsolute.style.top = '60%';
+        qrAbsolute.style.left = '150px';
+        qrAbsolute.style.transform = 'translate(-50%, -50%)';
+        qrAbsolute.style.display = 'flex';
+        qrAbsolute.style.flexDirection = 'column';
+        qrAbsolute.style.alignItems = 'center';
+      }
+
+      const clonedCanvas = clone.querySelector('#qrCanvas');
+      if (clonedCanvas) {
+        const formDisplayName = (formTitleElement.textContent || "Evento").replace("Formulario: ", "").trim();
+        let datosQR = `${formDisplayName}\nNombre: ${outNombre.textContent}\nCédula: ${outCedula.textContent.replace(/\./g, '')}\nEdad: ${outEdad.textContent}\nCódigo: ${outCodigo.textContent}`;
+        if (outNumero.textContent && outNumero.textContent !== '-') datosQR += `\nNúmero: ${outNumero.textContent}`;
+        if (outCorreo.textContent && outCorreo.textContent !== '-') datosQR += `\nCorreo: ${outCorreo.textContent}`;
+        if (outReferencia.textContent) datosQR += `\nRef: ${outReferencia.textContent}`;
+        if (outTipoEntrada && outTipoEntrada.textContent) datosQR += `\nTipo: ${outTipoEntrada.textContent}`;
+
+        await new Promise(resolve => {
+          QRCode.toCanvas(clonedCanvas, datosQR, { width: 70, height: 70, margin: 1 }, resolve);
+        });
+      }
+
+      await new Promise(r => setTimeout(r, 250));
 
       const canvas = await html2canvas(clone, {
         useCORS: true,
-        scale: 3,
+        scale: targetWidth / baseWidth,
         backgroundColor: '#ffffff'
       });
 
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = targetWidth;
+      finalCanvas.height = targetHeight;
+      const ctx = finalCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
+
       const link = document.createElement('a');
-      link.download = `Ticket_${outCodigo.textContent}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.9);
+      link.download = `${outNombre.textContent}${outCodigo.textContent}.jpg`;
+      link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
       link.click();
       document.body.removeChild(clone);
     } catch (e) {
