@@ -336,32 +336,43 @@ if (btnCorregir) {
 if (guardarBtn) {
   guardarBtn.addEventListener('click', async () => {
     try {
-      const html2canvas = (await import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.esm.min.js')).default;
+      console.log("Iniciando captura de imagen...");
+      if (typeof html2canvas === 'undefined') {
+        throw new Error('La librería html2canvas no se ha cargado correctamente.');
+      }
+
       const elementToCapture = document.querySelector('#entradaGenerada .ticket-img-wrap');
       if (!elementToCapture) return alert('No se pudo encontrar el ticket');
 
+      // Crear clon para la captura
       const clone = elementToCapture.cloneNode(true);
       const targetWidth = 2500;
       const targetHeight = 960;
-      const baseWidth = elementToCapture.offsetWidth;
-      const baseHeight = elementToCapture.offsetHeight;
+      const baseWidth = elementToCapture.offsetWidth || 500;
+      const baseHeight = elementToCapture.offsetHeight || 170;
 
+      // Estilo del clon (fuera de vista)
       clone.style.width = `${baseWidth}px`;
       clone.style.height = `${baseHeight}px`;
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
+      clone.style.position = 'fixed';
+      clone.style.left = '-10000px';
+      clone.style.top = '0';
       clone.style.backgroundColor = '#ffffff';
       document.body.appendChild(clone);
 
+      // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
       const qrAbsolute = clone.querySelector('.qr-absolute');
       if (qrAbsolute) {
         qrAbsolute.style.position = 'absolute';
-        qrAbsolute.style.top = '60%';
-        qrAbsolute.style.left = '150px';
+        qrAbsolute.style.top = '50%';
+        qrAbsolute.style.left = '100px'; // Reducido de 150px para mover más a la izquierda
         qrAbsolute.style.transform = 'translate(-50%, -50%)';
         qrAbsolute.style.display = 'flex';
         qrAbsolute.style.flexDirection = 'column';
         qrAbsolute.style.alignItems = 'center';
+        qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
+        qrAbsolute.style.padding = '6px';
+        qrAbsolute.style.borderRadius = '8px';
       }
 
       const clonedCanvas = clone.querySelector('#qrCanvas');
@@ -381,27 +392,40 @@ if (guardarBtn) {
 
       await new Promise(r => setTimeout(r, 250));
 
+      console.log("Generando canvas con html2canvas...");
       const canvas = await html2canvas(clone, {
         useCORS: true,
         scale: targetWidth / baseWidth,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        logging: true
       });
 
+      console.log("Redimensionando a 2500x960...");
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = targetWidth;
       finalCanvas.height = targetHeight;
       const ctx = finalCanvas.getContext('2d');
+      // Dibujar el canvas capturado en el canvas final de alta resolución
       ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
 
+      console.log("Iniciando descarga...");
       const link = document.createElement('a');
-      const fileName = (outNombre ? outNombre.textContent.trim() : 'Entrada') + (outCodigo ? outCodigo.textContent.trim() : '') + '.jpg';
+      const safeNombre = (outNombre ? outNombre.textContent.trim() : 'Entrada').replace(/[^a-z0-9]/gi, '_');
+      const safeCodigo = (outCodigo ? outCodigo.textContent.trim() : '');
+      const fileName = `${safeNombre}_${safeCodigo}.jpg`;
+
       link.download = fileName;
       link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+
+      // Limpieza
       document.body.removeChild(clone);
+      console.log("Proceso completado con éxito.");
     } catch (e) {
-      console.error(e);
-      alert('Error al guardar imagen');
+      console.error("Error detallado al guardar imagen:", e);
+      alert('Error al guardar imagen: ' + e.message);
     }
   });
 }
