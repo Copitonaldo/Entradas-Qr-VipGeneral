@@ -10,9 +10,9 @@ html, body {
   flex-direction: column;
   align-items: center;
   margin-top: 40px;
-  padding-left: 10px; 
-  padding-right: 10px; 
-  box-sizing: border-box; 
+  padding-left: 10px;
+  padding-right: 10px;
+  box-sizing: border-box;
 }
 
 form#formData {
@@ -21,7 +21,7 @@ form#formData {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
   width: 350px;
-  max-width: 100%; 
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -40,7 +40,7 @@ form#formData input[type="number"] {
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
 
 form#formData button {
@@ -63,7 +63,7 @@ form#formData button:hover {
   font-weight: bold;
   margin-bottom: 16px;
   display: none;
-  width: 350px; 
+  width: 350px;
   max-width: 100%;
   box-sizing: border-box;
 }
@@ -74,7 +74,7 @@ form#formData button:hover {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
   width: 350px;
-  max-width: 100%; 
+  max-width: 100%;
   box-sizing: border-box;
   margin-top: 20px;
 }
@@ -85,8 +85,8 @@ form#formData button:hover {
   border-radius: 10px;
   box-shadow: 0 2px 12px #0002;
   margin-top: 40px;
-  max-width: 550px; 
-  width: 100%; 
+  max-width: 550px;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -97,24 +97,24 @@ form#formData button:hover {
 
 .ticket-img-wrap {
   position: relative;
-  display: block; 
-  width: 100%; 
-  max-width: 500px; 
-  aspect-ratio: 500 / 170; 
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 2500 / 960;
   margin: 0 auto 10px auto;
-  background: #f0f0f0; 
+  background: #f0f0f0;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   box-sizing: border-box;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .ticket-bg {
   width: 100%;
   height: 100%;
-  object-fit: cover; 
-  border-radius: 0; 
-  display: block; 
+  object-fit: cover;
+  border-radius: 0;
+  display: block;
 }
 
 .qr-absolute {
@@ -122,8 +122,8 @@ form#formData button:hover {
   top: 50%;
   left: 20px;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9); 
-  padding: 6px; 
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   display: flex;
@@ -134,13 +134,13 @@ form#formData button:hover {
 
 #qrCanvas {
   border-radius: 4px;
-  width: 70px; 
-  height: 70px; 
+  width: 70px;
+  height: 70px;
   display: block;
 }
 
 .qr-code-label {
-  font-size: 0.85rem; 
+  font-size: 0.85rem;
   margin-top: 3px;
   color: #333;
   text-align: center;
@@ -148,9 +148,9 @@ form#formData button:hover {
 }
 
 .datos {
-  margin-top: 15px; 
-  font-size: 1.1rem; 
-  padding: 0 10px; 
+  margin-top: 15px;
+  font-size: 1.1rem;
+  padding: 0 10px;
   box-sizing: border-box;
 }
 
@@ -167,11 +167,40 @@ form#formData button:hover {
   line-height: 1.4;
 }
 
+/* Estilos para los datos cuando están dentro del ticket (clon de captura) */
+.ticket-img-wrap .datos {
+  position: absolute;
+  top: 72%;
+  left: 100px;
+  transform: translateX(-50%);
+  width: 170px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 8px;
+  z-index: 11;
+  box-shadow: none;
+  display: block;
+}
+
+.ticket-img-wrap .datos div {
+  display: flex;
+  margin-bottom: 2px;
+  font-size: 8px;
+  line-height: 1.1;
+}
+
+.ticket-img-wrap .datos b {
+  width: 60px;
+  flex-shrink: 0;
+  font-size: 8px;
+}
+
 #guardarBtn {
-  margin-top: 25px; 
+  margin-top: 25px;
   padding: 12px 28px;
-  font-size: 1.05rem; 
-  background: #28a745; 
+  font-size: 1.05rem;
+  background: #28a745;
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -183,25 +212,25 @@ form#formData button:hover {
 }
 
 #guardarBtn:hover {
-  background-color: #218838; 
+  background-color: #218838;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) { /* Ajustes para tabletas y móviles grandes */
   .center {
     margin-top: 20px;
-    padding-left: 15px; 
+    padding-left: 15px;
     padding-right: 15px;
   }
-  form#formData, 
-  #confirmacionDatos, 
-  #errorMsg, 
+  form#formData,
+  #confirmacionDatos,
+  #errorMsg,
   #entradaGenerada {
-    width: 100%; 
-    max-width: 480px; 
+    width: 100%;
+    max-width: 480px;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 20px; 
+    padding-left: 20px;
     padding-right: 20px;
   }
   #entradaGenerada {
@@ -209,21 +238,21 @@ form#formData button:hover {
     padding-bottom: 30px;
   }
   .ticket-img-wrap {
-    max-width: 100%; 
+    max-width: 100%;
   }
   .qr-absolute {
     left: 15px;
     padding: 5px;
   }
   #qrCanvas {
-    width: 65px; 
-    height: 65px; 
+    width: 65px;
+    height: 65px;
   }
   .qr-code-label {
     font-size: 0.8rem;
   }
   .datos {
-    font-size: 1rem; 
+    font-size: 1rem;
   }
   .datos div {
     margin-bottom: 6px;
@@ -240,25 +269,25 @@ form#formData button:hover {
 @media (max-width: 480px) { /* Ajustes para móviles pequeños */
   .center {
     margin-top: 15px;
-    padding-left: 10px; 
+    padding-left: 10px;
     padding-right: 10px;
   }
-  form#formData, 
-  #confirmacionDatos, 
+  form#formData,
+  #confirmacionDatos,
   #errorMsg {
-    padding: 20px 15px; 
+    padding: 20px 15px;
   }
   form#formData label {
-    font-size: 1rem; 
+    font-size: 1rem;
   }
   form#formData input[type="text"],
   form#formData input[type="number"] {
-    font-size: 0.95rem; 
-    padding: 10px 8px; 
+    font-size: 0.95rem;
+    padding: 10px 8px;
   }
   form#formData button {
-    font-size: 1rem; 
-    padding: 12px; 
+    font-size: 1rem;
+    padding: 12px;
   }
   #entradaGenerada {
     padding: 15px 15px 25px 15px;
@@ -268,14 +297,14 @@ form#formData button:hover {
     padding: 4px;
   }
   #qrCanvas {
-    width: 50px; 
-    height: 50px; 
+    width: 50px;
+    height: 50px;
   }
   .qr-code-label {
     font-size: 0.7rem;
   }
   .datos {
-    font-size: 0.9rem; 
+    font-size: 0.9rem;
   }
   .datos div {
     margin-bottom: 5px;
@@ -288,13 +317,13 @@ form#formData button:hover {
     padding: 10px 18px;
   }
   #confirmacionDatos h3 {
-    font-size: 1.1rem; 
+    font-size: 1.1rem;
   }
   #confirmacionDatos p {
-    font-size: 0.9rem; 
+    font-size: 0.9rem;
   }
   #confirmacionDatos button {
-    padding: 8px 15px; 
+    padding: 8px 15px;
     font-size: 0.9rem;
   }
 }

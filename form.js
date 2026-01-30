@@ -358,13 +358,18 @@ if (guardarBtn) {
       clone.style.left = '-10000px';
       clone.style.top = '0';
       clone.style.backgroundColor = '#ffffff';
+      clone.style.borderRadius = '0'; // Asegurar formato rectangular
+
+      const clonedBg = clone.querySelector('.ticket-bg');
+      if (clonedBg) clonedBg.style.borderRadius = '0';
+
       document.body.appendChild(clone);
 
       // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
       const qrAbsolute = clone.querySelector('.qr-absolute');
       if (qrAbsolute) {
         qrAbsolute.style.position = 'absolute';
-        qrAbsolute.style.top = '50%';
+        qrAbsolute.style.top = '35%'; // Subir QR para dejar espacio a datos
         qrAbsolute.style.left = '100px'; // Reducido de 150px para mover más a la izquierda
         qrAbsolute.style.transform = 'translate(-50%, -50%)';
         qrAbsolute.style.display = 'flex';
@@ -373,6 +378,43 @@ if (guardarBtn) {
         qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
         qrAbsolute.style.padding = '6px';
         qrAbsolute.style.borderRadius = '8px';
+        qrAbsolute.style.boxShadow = 'none'; // Evitar sombras extra en la captura
+      }
+
+      // Clonar y agregar datos personales al ticket en la captura
+      const datosOriginal = document.querySelector('#entradaGenerada .datos');
+      if (datosOriginal) {
+        const datosClon = datosOriginal.cloneNode(true);
+        datosClon.style.position = 'absolute';
+        datosClon.style.top = '68%';
+        datosClon.style.left = '100px';
+        datosClon.style.transform = 'translateX(-50%)';
+        datosClon.style.width = '170px';
+        datosClon.style.fontSize = '7px';
+        datosClon.style.display = 'block';
+        datosClon.style.margin = '0';
+        datosClon.style.padding = '6px';
+        datosClon.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        datosClon.style.borderRadius = '8px';
+        datosClon.style.boxShadow = 'none';
+
+        // Estilizar las filas de datos para la captura
+        const filas = datosClon.querySelectorAll('div');
+        filas.forEach(div => {
+          div.style.display = 'flex';
+          div.style.marginBottom = '1px';
+          div.style.fontSize = '7px';
+          div.style.lineHeight = '1.0';
+        });
+
+        const boldLabels = datosClon.querySelectorAll('b');
+        boldLabels.forEach(b => {
+          b.style.width = '55px'; // Ancho fijo menor para que quepa en el ticket
+          b.style.flexShrink = '0';
+          b.style.fontSize = '7px';
+        });
+
+        clone.appendChild(datosClon);
       }
 
       const clonedCanvas = clone.querySelector('#qrCanvas');
