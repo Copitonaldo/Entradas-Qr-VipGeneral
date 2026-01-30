@@ -147,6 +147,7 @@ form#formData button:hover {
   font-weight: bold;
 }
 
+/* ✅ SECCIÓN CORREGIDA: .datos */
 .datos {
   margin-top: 15px; 
   font-size: 1.1rem; 
@@ -154,18 +155,27 @@ form#formData button:hover {
   box-sizing: border-box;
 }
 
+.datos div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
 .datos b {
   width: 125px; 
   flex-shrink: 0;
   font-weight: bold;
+  margin: 0;
 }
 
-.datos div {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 8px; 
-  line-height: 1.4;
+.datos span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+/* ✅ FIN DE LA SECCIÓN CORREGIDA */
 
 #guardarBtn {
   margin-top: 25px; 
@@ -226,7 +236,7 @@ form#formData button:hover {
     font-size: 1rem; 
   }
   .datos div {
-    margin-bottom: 6px;
+    margin-bottom: 5px;
   }
   .datos b {
     width: 115px; 
@@ -278,7 +288,7 @@ form#formData button:hover {
     font-size: 0.9rem; 
   }
   .datos div {
-    margin-bottom: 5px;
+    margin-bottom: 4px;
   }
   .datos b {
     width: 110px; 
