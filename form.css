@@ -119,7 +119,7 @@ form#formData button:hover {
 
 .qr-absolute {
   position: absolute;
-  top: 50%;
+  top: 28%;
   left: 20px;
   transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.9);
@@ -147,53 +147,54 @@ form#formData button:hover {
   font-weight: bold;
 }
 
-.datos {
+/* Datos fuera del ticket (UI Principal) */
+.datos-lista {
   margin-top: 15px;
   font-size: 1.1rem;
   padding: 0 10px;
   box-sizing: border-box;
 }
 
-.datos b {
+.datos-lista b {
   width: 125px;
   flex-shrink: 0;
   font-weight: bold;
 }
 
-.datos div {
+.datos-lista div {
   display: flex;
   align-items: flex-start;
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
-/* Estilos para los datos cuando están dentro del ticket (clon de captura) */
-.ticket-img-wrap .datos {
+/* Datos dentro del ticket (Overlay) */
+.ticket-img-wrap .datos-overlay {
   position: absolute;
-  top: 72%;
-  left: 100px;
-  transform: translateX(-50%);
-  width: 170px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 6px;
+  top: 58%;
+  left: 15px;
+  width: auto;
+  min-width: 160px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 8px;
   border-radius: 8px;
-  font-size: 8px;
+  font-size: 10px;
   z-index: 11;
-  box-shadow: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   display: block;
 }
 
-.ticket-img-wrap .datos div {
+.ticket-img-wrap .datos-overlay div {
   display: flex;
-  margin-bottom: 2px;
-  font-size: 8px;
-  line-height: 1.1;
+  margin-bottom: 1px;
+  font-size: 9px;
+  line-height: 1.2;
 }
 
-.ticket-img-wrap .datos b {
-  width: 60px;
+.ticket-img-wrap .datos-overlay b {
+  width: 85px;
   flex-shrink: 0;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 #guardarBtn {

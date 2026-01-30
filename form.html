@@ -49,12 +49,21 @@
         <canvas id="qrCanvas" width="80" height="80"></canvas>
         <div class="qr-code-label" id="codigoQR"></div>
       </div>
+      <!-- Datos sobrepuestos en el ticket -->
+      <div class="datos-overlay" id="datosOverlay">
+        <div><b>Nombre:</b> <span id="ovNombre"></span></div>
+        <div><b>Cédula:</b> <span id="ovCedula"></span></div>
+        <div><b>Edad:</b> <span id="ovEdad"></span></div>
+        <div><b>CÓDIGO:</b> <span id="ovCodigo"></span></div>
+        <div id="ovReferenciaContenedor" style="display:none;"><b>Referencia:</b> <span id="ovReferencia"></span></div>
+        <div id="ovTipoEntradaContenedor" style="display:none;"><b>Tipo de entrada:</b> <span id="ovTipoEntrada"></span></div>
+      </div>
     </div>
-    <div class="datos" style="font-size: 1.15rem; margin-top: 18px;">
+    <div class="datos-lista" style="font-size: 1.15rem; margin-top: 18px;">
       <div><b>Nombre:</b> <span id="outNombre"></span></div>
       <div><b>Cédula:</b> <span id="outCedula"></span></div>
       <div><b>Edad:</b> <span id="outEdad"></span></div>
-      <div><b>CÓDIGO:</b> <span id="outCodigo"></span></div>
+      <div><b>Código:</b> <span id="outCodigo"></span></div>
       <div id="outReferenciaContenedor" style="display:none;"><b>Referencia:</b> <span id="outReferencia"></span></div>
       <div id="outTipoEntradaContenedor" style="display:none;"><b>Tipo de entrada:</b> <span id="outTipoEntrada"></span></div>
     </div>

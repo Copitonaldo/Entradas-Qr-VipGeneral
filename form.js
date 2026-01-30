@@ -39,6 +39,16 @@ const outReferencia = document.getElementById('outReferencia');
 const outReferenciaContenedor = document.getElementById('outReferenciaContenedor');
 const outTipoEntrada = document.getElementById('outTipoEntrada');
 const outTipoEntradaContenedor = document.getElementById('outTipoEntradaContenedor');
+
+// Variables Overlay (dentro del ticket)
+const ovNombre = document.getElementById('ovNombre');
+const ovCedula = document.getElementById('ovCedula');
+const ovEdad = document.getElementById('ovEdad');
+const ovCodigo = document.getElementById('ovCodigo');
+const ovReferencia = document.getElementById('ovReferencia');
+const ovReferenciaContenedor = document.getElementById('ovReferenciaContenedor');
+const ovTipoEntrada = document.getElementById('ovTipoEntrada');
+const ovTipoEntradaContenedor = document.getElementById('ovTipoEntradaContenedor');
 const codigoQR = document.getElementById('codigoQR');
 const qrCanvas = document.getElementById('qrCanvas');
 const entradaGenerada = document.getElementById('entradaGenerada');
@@ -275,28 +285,45 @@ if (btnConfirmar) {
 
       await decrementarUsoReferencia(validRef.datosReferencia.id);
 
-      // Mostrar ticket
-      if (outNombre) outNombre.textContent = insertData.nombre_completo;
-      if (outCedula) outCedula.textContent = formatCedula(insertData.cedula);
-      if (outEdad) outEdad.textContent = `${insertData.edad} años`;
+      // Mostrar ticket (UI y Overlay)
+      const nombreFormatted = insertData.nombre_completo;
+      const cedulaFormatted = formatCedula(insertData.cedula);
+      const edadText = `${insertData.edad} años`;
+      const codigoText = insertData.codigo_secuencial;
+      const refText = insertData.referencia_usada;
+      const tipoText = insertData.tipo_entrada;
+
+      if (outNombre) outNombre.textContent = nombreFormatted;
+      if (ovNombre) ovNombre.textContent = nombreFormatted;
+      if (outCedula) outCedula.textContent = cedulaFormatted;
+      if (ovCedula) ovCedula.textContent = cedulaFormatted;
+      if (outEdad) outEdad.textContent = edadText;
+      if (ovEdad) ovEdad.textContent = edadText;
+      if (outCodigo) outCodigo.textContent = codigoText;
+      if (ovCodigo) ovCodigo.textContent = codigoText;
+
       if (outNumero) outNumero.textContent = insertData.numero_telefono || '-';
       if (outCorreo) outCorreo.textContent = insertData.correo_electronico || '-';
-      if (outCodigo) outCodigo.textContent = insertData.codigo_secuencial;
-      if (outReferencia) outReferencia.textContent = insertData.referencia_usada;
-      if (outReferenciaContenedor) outReferenciaContenedor.style.display = 'block';
 
-      if (outTipoEntrada && insertData.tipo_entrada) {
-        outTipoEntrada.textContent = insertData.tipo_entrada;
+      if (outReferencia) outReferencia.textContent = refText;
+      if (ovReferencia) ovReferencia.textContent = refText;
+      if (outReferenciaContenedor) outReferenciaContenedor.style.display = 'block';
+      if (ovReferenciaContenedor) ovReferenciaContenedor.style.display = 'block';
+
+      if (tipoText) {
+        if (outTipoEntrada) outTipoEntrada.textContent = tipoText;
+        if (ovTipoEntrada) ovTipoEntrada.textContent = tipoText;
         if (outTipoEntradaContenedor) outTipoEntradaContenedor.style.display = 'block';
+        if (ovTipoEntradaContenedor) ovTipoEntradaContenedor.style.display = 'block';
       }
-      if (codigoQR) codigoQR.textContent = "Código: " + insertData.codigo_secuencial;
+      if (codigoQR) codigoQR.textContent = "CÓDIGO: " + codigoText;
 
       const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
       let datosQR = `${formDisplayName}
 Nombre: ${insertData.nombre_completo}
 Cédula: ${insertData.cedula}
 Edad: ${insertData.edad}
-Código: ${insertData.codigo_secuencial}`;
+CÓDIGO: ${insertData.codigo_secuencial}`;
       if (insertData.numero_telefono) datosQR += `\nNúmero: ${insertData.numero_telefono}`;
       if (insertData.correo_electronico) datosQR += `\nCorreo: ${insertData.correo_electronico}`;
       if (insertData.referencia_usada) datosQR += `\nRef: ${insertData.referencia_usada}`;
@@ -365,71 +392,24 @@ if (guardarBtn) {
 
       document.body.appendChild(clone);
 
-      // Ajustar posición del QR en el clon para que coincida con la solicitud (más a la izquierda)
-      const qrAbsolute = clone.querySelector('.qr-absolute');
-      if (qrAbsolute) {
-        qrAbsolute.style.position = 'absolute';
-        qrAbsolute.style.top = '35%'; // Subir QR para dejar espacio a datos
-        qrAbsolute.style.left = '100px'; // Reducido de 150px para mover más a la izquierda
-        qrAbsolute.style.transform = 'translate(-50%, -50%)';
-        qrAbsolute.style.display = 'flex';
-        qrAbsolute.style.flexDirection = 'column';
-        qrAbsolute.style.alignItems = 'center';
-        qrAbsolute.style.background = 'rgba(255, 255, 255, 0.9)';
-        qrAbsolute.style.padding = '6px';
-        qrAbsolute.style.borderRadius = '8px';
-        qrAbsolute.style.boxShadow = 'none'; // Evitar sombras extra en la captura
-      }
-
-      // Clonar y agregar datos personales al ticket en la captura
-      const datosOriginal = document.querySelector('#entradaGenerada .datos');
-      if (datosOriginal) {
-        const datosClon = datosOriginal.cloneNode(true);
-        datosClon.style.position = 'absolute';
-        datosClon.style.top = '68%';
-        datosClon.style.left = '100px';
-        datosClon.style.transform = 'translateX(-50%)';
-        datosClon.style.width = '170px';
-        datosClon.style.fontSize = '7px';
-        datosClon.style.display = 'block';
-        datosClon.style.margin = '0';
-        datosClon.style.padding = '6px';
-        datosClon.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
-        datosClon.style.borderRadius = '8px';
-        datosClon.style.boxShadow = 'none';
-
-        // Estilizar las filas de datos para la captura
-        const filas = datosClon.querySelectorAll('div');
-        filas.forEach(div => {
-          div.style.display = 'flex';
-          div.style.marginBottom = '1px';
-          div.style.fontSize = '7px';
-          div.style.lineHeight = '1.0';
-        });
-
-        const boldLabels = datosClon.querySelectorAll('b');
-        boldLabels.forEach(b => {
-          b.style.width = '55px'; // Ancho fijo menor para que quepa en el ticket
-          b.style.flexShrink = '0';
-          b.style.fontSize = '7px';
-        });
-
-        clone.appendChild(datosClon);
-      }
-
+      // Usar un QR de mayor resolución para la captura
       const clonedCanvas = clone.querySelector('#qrCanvas');
       if (clonedCanvas) {
         const formDisplayName = (formTitleElement ? formTitleElement.textContent : "Evento").replace("Formulario: ", "").trim();
-        let datosQR = `${formDisplayName}\nNombre: ${outNombre ? outNombre.textContent : ''}\nCédula: ${outCedula ? outCedula.textContent.replace(/\./g, '') : ''}\nEdad: ${outEdad ? outEdad.textContent : ''}\nCódigo: ${outCodigo ? outCodigo.textContent : ''}`;
+        let datosQR = `${formDisplayName}\nNombre: ${outNombre ? outNombre.textContent : ''}\nCédula: ${outCedula ? outCedula.textContent.replace(/\./g, '') : ''}\nEdad: ${outEdad ? outEdad.textContent : ''}\nCÓDIGO: ${outCodigo ? outCodigo.textContent : ''}`;
 
         if (outNumero && outNumero.textContent && outNumero.textContent !== '-') datosQR += `\nNúmero: ${outNumero.textContent}`;
         if (outCorreo && outCorreo.textContent && outCorreo.textContent !== '-') datosQR += `\nCorreo: ${outCorreo.textContent}`;
         if (outReferencia && outReferencia.textContent) datosQR += `\nRef: ${outReferencia.textContent}`;
         if (outTipoEntrada && outTipoEntrada.textContent) datosQR += `\nTipo: ${outTipoEntrada.textContent}`;
 
+        // Aumentar resolución del QR para la captura (300px)
         await new Promise(resolve => {
-          QRCode.toCanvas(clonedCanvas, datosQR, { width: 70, height: 70, margin: 1 }, resolve);
+          QRCode.toCanvas(clonedCanvas, datosQR, { width: 300, height: 300, margin: 1 }, resolve);
         });
+        // Ajustar visualmente el canvas en el clon para que no se desborde antes de la captura
+        clonedCanvas.style.width = '70px';
+        clonedCanvas.style.height = '70px';
       }
 
       await new Promise(r => setTimeout(r, 250));
