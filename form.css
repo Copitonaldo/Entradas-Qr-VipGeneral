@@ -147,35 +147,31 @@ form#formData button:hover {
   font-weight: bold;
 }
 
-/* ✅ SECCIÓN CORREGIDA: .datos */
+/* ✅ ESTILO FINAL PARA .datos — Texto simple */
 .datos {
-  margin-top: 15px; 
-  font-size: 1.1rem; 
-  padding: 0 10px; 
+  margin-top: 18px;
+  font-size: 1.15rem;
+  padding: 0 10px;
   box-sizing: border-box;
+  line-height: 1.6;
 }
 
 .datos div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  line-height: 1.4;
+  margin-bottom: 4px;
 }
 
-.datos b {
-  width: 125px; 
-  flex-shrink: 0;
+.datos b,
+.datos span {
+  display: inline;
   font-weight: bold;
   margin: 0;
+  padding: 0;
 }
 
-.datos span {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.datos b::after {
+  content: " ";
 }
-/* ✅ FIN DE LA SECCIÓN CORREGIDA */
+/* ✅ FIN */
 
 #guardarBtn {
   margin-top: 25px; 
@@ -197,7 +193,7 @@ form#formData button:hover {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) { /* Ajustes para tabletas y móviles grandes */
+@media (max-width: 768px) {
   .center {
     margin-top: 20px;
     padding-left: 15px; 
@@ -233,21 +229,11 @@ form#formData button:hover {
     font-size: 0.8rem;
   }
   .datos {
-    font-size: 1rem; 
-  }
-  .datos div {
-    margin-bottom: 5px;
-  }
-  .datos b {
-    width: 115px; 
-  }
-  #guardarBtn { /* Ajuste para el botón de guardar en este breakpoint */
     font-size: 1rem;
-    padding: 10px 20px;
   }
 }
 
-@media (max-width: 480px) { /* Ajustes para móviles pequeños */
+@media (max-width: 480px) {
   .center {
     margin-top: 15px;
     padding-left: 10px; 
@@ -285,26 +271,10 @@ form#formData button:hover {
     font-size: 0.7rem;
   }
   .datos {
-    font-size: 0.9rem; 
-  }
-  .datos div {
-    margin-bottom: 4px;
-  }
-  .datos b {
-    width: 110px; 
+    font-size: 0.9rem;
   }
   #guardarBtn {
     font-size: 0.95rem;
     padding: 10px 18px;
-  }
-  #confirmacionDatos h3 {
-    font-size: 1.1rem; 
-  }
-  #confirmacionDatos p {
-    font-size: 0.9rem; 
-  }
-  #confirmacionDatos button {
-    padding: 8px 15px; 
-    font-size: 0.9rem;
   }
 }
