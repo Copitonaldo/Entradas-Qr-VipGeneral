@@ -156,7 +156,7 @@ form#formData button:hover {
 
 .datos b {
   display: inline-block;
-  width: 75px; 
+  width: 150px;
   font-weight: bold;
 }
 
@@ -224,7 +224,7 @@ form#formData button:hover {
     font-size: 1rem; 
   }
   .datos b {
-    width: 70px; 
+    width: 140px;
   }
   #guardarBtn { /* Ajuste para el botón de guardar en este breakpoint */
     font-size: 1rem;
@@ -273,7 +273,7 @@ form#formData button:hover {
     font-size: 0.9rem; 
   }
   .datos b {
-    width: 60px; 
+    width: 130px;
   }
   #guardarBtn {
     font-size: 0.95rem;

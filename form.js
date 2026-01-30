@@ -410,9 +410,9 @@ if (guardarBtn) {
 
       console.log("Iniciando descarga...");
       const link = document.createElement('a');
-      const safeNombre = (outNombre ? outNombre.textContent.trim() : 'Entrada').replace(/[^a-z0-9]/gi, '_');
+      const nombre = (outNombre ? outNombre.textContent.trim() : 'Entrada');
       const safeCodigo = (outCodigo ? outCodigo.textContent.trim() : '');
-      const fileName = `${safeNombre}_${safeCodigo}.jpg`;
+      const fileName = `${safeCodigo}${nombre}.jpg`;
 
       link.download = fileName;
       link.href = finalCanvas.toDataURL('image/jpeg', 0.9);
