@@ -155,13 +155,15 @@ form#formData button:hover {
 }
 
 .datos b {
-  display: inline-block;
-  width: 75px; 
+  width: 180px; 
+  flex-shrink: 0;
   font-weight: bold;
 }
 
 .datos div {
-  margin-bottom: 5px; 
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px; 
   line-height: 1.4;
 }
 
@@ -223,8 +225,11 @@ form#formData button:hover {
   .datos {
     font-size: 1rem; 
   }
+  .datos div {
+    margin-bottom: 6px;
+  }
   .datos b {
-    width: 70px; 
+    width: 160px; 
   }
   #guardarBtn { /* Ajuste para el botón de guardar en este breakpoint */
     font-size: 1rem;
@@ -272,8 +277,11 @@ form#formData button:hover {
   .datos {
     font-size: 0.9rem; 
   }
+  .datos div {
+    margin-bottom: 5px;
+  }
   .datos b {
-    width: 60px; 
+    width: 150px; 
   }
   #guardarBtn {
     font-size: 0.95rem;
